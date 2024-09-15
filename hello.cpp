@@ -5,7 +5,8 @@
 using namespace std;
 
 int main()
-{
+{    
+    cout << "im me mom";
     vector<string> msg {"Hello", "C++", "World", "from", "VS Code", "and the C++ extension!"};
 
     for (const string& word : msg)

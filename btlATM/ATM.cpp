@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cstdlib>  // Dùng để gọi system("clear") hoặc system("cls")
 
-using namespace std;
+using namespace std; //123
 
 ATM::ATM() {
     // Không đọc file, khởi tạo chương trình không cần dữ liệu ban đầu

@@ -1,39 +1,41 @@
 #include "ATM.h"
 #include <iostream>
 #include <cstdlib>  // Dùng để gọi system("clear") hoặc system("cls")
+#include <conio.h>
+#include <cctype>
+#include <ctime>   // cho time()
+#include <iomanip> // cho std::setw và std::setfill
 
-using namespace std; //123
+using namespace std;
 
 ATM::ATM() {
     // Không đọc file, khởi tạo chương trình không cần dữ liệu ban đầu
 }
 
 void ATM::displayHeader(const string& title) {
-    system("clear || cls");  // Reset màn hình
+    #ifndef DEBUG
+    system("cls");  // Reset màn hình
+    #endif
     cout << "\033[1;36m";  // Màu xanh dương sáng
     cout << "===========================================\n";
     
-    // Tên ngân hàng cần căn giữa
     string bankName = "W3O BANK";
-    int width = 43;  // Chiều rộng của khung tiêu đề
-    int bankPadding = (width - bankName.length()) / 2;  // Tính toán khoảng trắng để căn giữa
-    cout << string(bankPadding, ' ') << bankName << "\n";
+    int width = 43; // Độ rộng của khung
+    int bankPadding = (width - bankName.length()) / 2;
+    cout << "||" << string(bankPadding, ' ') << bankName << string(width - bankPadding - bankName.length() - 4, ' ') << "||\n";
 
     cout << "===========================================\n";
-
-    // Tiêu đề cần căn giữa
-    int titlePadding = (width - title.length()) / 2;  // Tính toán khoảng trắng để căn giữa
-    cout << string(titlePadding, ' ') << title << "\n";
+    int titlePadding = (width - title.length()) / 2;
+    cout << "||" << string(titlePadding, ' ') << title << string(width - titlePadding - title.length() - 4, ' ') << "||\n";
 
     cout << "===========================================\n";
     cout << "\033[0m";  // Reset lại màu sắc
 }
 
-
 void ATM::run() {
     int choice;
     do {
-        displayHeader("Main Menu");
+        displayHeader("<<WELCOME TO W3O BANK>>");
         showMenu();
         cin >> choice;
 
@@ -69,23 +71,23 @@ void ATM::showMenu() {
 
     // Khung lựa chọn với các ký tự khác và ngắn hơn
     cout << "\033[1;32m";  // Màu xanh lá sáng cho khung
-    cout << "+-------------------------------------+\n";
-    cout << "| 1. Login                            |\n";
-    cout << "+-------------------------------------+\n";
-    cout << "| 2. Register                         |\n";
-    cout << "+-------------------------------------+\n";
-    cout << "| 3. Deposit                          |\n";
-    cout << "+-------------------------------------+\n";
-    cout << "| 4. Withdraw                         |\n";
-    cout << "+-------------------------------------+\n";
-    cout << "| 5. Transfer                         |\n";
-    cout << "+-------------------------------------+\n";
-    cout << "| 6. Check Balance                    |\n";
-    cout << "+-------------------------------------+\n";
-    cout << "| 7. Logout                           |\n";
-    cout << "+-------------------------------------+\n";
-    cout << "| 8. Exit                             |\n";
-    cout << "+-------------------------------------+\n";
+    cout << "  +-------------------------------------+\n";
+    cout << "  | 1. Login                            |\n";
+    cout << "  +-------------------------------------+\n";
+    cout << "  | 2. Register                         |\n";
+    cout << "  +-------------------------------------+\n";
+    cout << "  | 3. Deposit                          |\n";
+    cout << "  +-------------------------------------+\n";
+    cout << "  | 4. Withdraw                         |\n";
+    cout << "  +-------------------------------------+\n";
+    cout << "  | 5. Transfer                         |\n";
+    cout << "  +-------------------------------------+\n";
+    cout << "  | 6. Check Balance                    |\n";
+    cout << "  +-------------------------------------+\n";
+    cout << "  | 7. Logout                           |\n";
+    cout << "  +-------------------------------------+\n";
+    cout << "  | 8. Exit                             |\n";
+    cout << "  +-------------------------------------+\n";
     cout << "\033[0m"; // Reset lại màu sắc
 
     cout << ">> Choose an option: ";
@@ -104,7 +106,26 @@ void ATM::login() {
     cout << "Enter username: ";
     cin >> username;
     cout << "Enter password: ";
-    cin >> password;
+    char ch;
+    while ((ch = _getch()) != 13) { // Nhấn Enter để kết thúc nhập
+        if (ch == 8) { // Nhấn Backspace để xóa ký tự
+            if (!password.empty()) {
+                password.pop_back();
+                cout << "\b \b"; // Xóa dấu * trên màn hình
+            }
+        } else if (ch == 127) { // Nhấn Delete để xóa ký tự tiếp theo
+            // Không thực hiện gì nếu không có ký tự nào để xóa
+            if (!password.empty()) {
+                // Xóa ký tự cuối cùng
+                cout << "\b \b"; // Xóa dấu * trên màn hình
+                password.pop_back();
+            }
+        } else {
+            password.push_back(ch);
+            cout << '*'; // Hiển thị dấu *
+        }
+    }
+    cout << endl; // Xuống dòng
 
     for (User& user : users) {
         if (user.getUsername() == username && user.checkPassword(password)) {
@@ -116,19 +137,101 @@ void ATM::login() {
     cout << "Invalid username or password.\n";
 }
 
+bool ATM::validatePassword(const string& password)
+{
+    bool hasUpper = false;
+    bool hasDigit = false;
+    bool hasSpecial = false;
+
+    if (password.length() < 10) {
+        cout << "Password must be at least 10 characters.\n";
+        return false;
+    }
+
+    for (char c : password) {
+        if (isupper(c)) hasUpper = true;
+        if (isdigit(c)) hasDigit = true;
+        if (ispunct(c)) hasSpecial = true;  // Ký tự đặc biệt
+    }
+
+    if (!hasUpper || !hasDigit || !hasSpecial) {
+        cout << "Password must contain at least 1 uppercase character, number and special character. Please re-enter!\n";
+        return false;
+    }
+
+    return true;
+}
+
+int ATM::generateOTP()
+{
+    return rand() % 1000000; // Tạo số ngẫu nhiên từ 0 đến 999999
+}
+
 void ATM::registerUser() {
     displayHeader("Register");
     string username, password, pin;
     cout << "Enter new username: ";
     cin >> username;
-    cout << "Enter new password: ";
-    cin >> password;
-    cout << "Set your transaction PIN: ";
-    cin >> pin;
+    cout<<endl;
+    char ch;
+     // Nhập mật khẩu với kiểm tra
+    do {
+        password.clear(); // Xóa mật khẩu để nhập lại nếu không hợp lệ
+        bool showPassword=false;
+        cout << "Enter password (Press '/' to toggle visibility): ";
+
+        while ((ch = _getch()) != 13) { // Nhấn Enter để kết thúc nhập
+            if (ch == 8) { // Nhấn Backspace để xóa ký tự
+                if (!password.empty()) {
+                    password.pop_back();
+                    cout << "\b \b"; // Xóa dấu * trên màn hình
+                }
+            } else if (ch == 127) { // Nhấn Delete để xóa ký tự tiếp theo
+                if (!password.empty()) {
+                    cout << "\b \b"; // Xóa dấu * trên màn hình
+                    password.pop_back();
+                }
+            } else if (ch == '/') { // Nhấn '/' để toggle hiển thị mật khẩu
+                showPassword = !showPassword; // Chuyển đổi chế độ hiển thị
+                cout << "\n" << (showPassword ? "Password: " : "Password: "); // In lại thông báo
+                for (char p : password) {
+                    cout << (showPassword ? p : '*'); // Hiển thị mật khẩu hoặc dấu *
+                }
+                cout << "\nEnter password (Press '/' to toggle visibility): ";
+                cout << string(100, ' ') << "\r"; // Xóa dòng con trỏ
+                cout << (showPassword ? "Password: " : "Password: "); // In lại thông báo
+                for (char p : password) {
+                    cout << (showPassword ? p : '*'); // Hiển thị mật khẩu hoặc dấu *
+                }
+            } else {
+                password.push_back(ch);
+                if (!showPassword) {
+                    cout << '*'; // Hiển thị dấu *
+                } else {
+                    cout << ch; // Hiển thị ký tự thật
+                }
+            }
+        }
+        cout << endl; // Xuống dòng sau khi nhập xong
+
+        // Kiểm tra mật khẩu sau khi nhập xong
+    } while (!validatePassword(password));
+    // Nếu đã nhập mật khẩu hợp lệ
+    cout << "Password is valid. Password entered successfully!\n";
+
+    cout << endl; // Xuống dòng
+
+    int lent;
+    do{
+        cout << "Set your transaction PIN(6 digits): ";
+        cin >> pin;
+        lent=pin.size();
+        if(lent!=6) cout<<"Your pin just have 6 digits!\n";
+    }while(lent!=6);
 
     users.push_back(User(username, password, pin));
     cout << "User registered successfully!\n";
-}
+}  
 
 void ATM::logout() {
     displayHeader("Logout");
@@ -155,6 +258,8 @@ void ATM::deposit() {
         cout << "Incorrect PIN. Transaction failed.\n";
         return;
     }
+
+
 
     double amount;
     cout << "Enter amount to deposit: ";
@@ -212,28 +317,41 @@ void ATM::transfer() {
         return;
     }
 
-    // Kiểm tra người nhận có tồn tại hay không
-    bool recipientFound = false;
-    for (User& user : users) {
-        if (user.getUsername() == receiverUsername) {
-            recipientFound = true;
+    // Kiểm tra nhập OTP được gửi về máy
+    srand(static_cast<unsigned int>(time(0))); // Khởi tạo số ngẫu nhiên gồm 6 chữ số
+    int otp = generateOTP(); // Tạo mã OTP
+    cout << "An OTP has been sent to your registered device: " << setw(6) << setfill('0') << otp << endl; // Đảm bảo mã OTP luôn có 6 chữ số
+    int userInput;
+    do {
+        cout << "Enter OTP code to confirm money transfer: ";
+        cin >> userInput;
+        if (userInput == otp) {
+        // Kiểm tra người nhận có tồn tại hay không
+        bool recipientFound = false;
+        for (User& user : users) {
+            if (user.getUsername() == receiverUsername) {
+                recipientFound = true;
 
-            // Kiểm tra nếu người gửi có đủ tiền để chuyển
-            if (loggedInUser->withdraw(amount)) {
-                user.deposit(amount);
-                cout << "Transfer successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
-            } else {
-                cout << "Insufficient balance.\n";
+                // Kiểm tra nếu người gửi có đủ tiền để chuyển
+                if (loggedInUser->withdraw(amount)) {
+                    user.deposit(amount);
+                    cout << "Transfer successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
+                } else {
+                    cout << "Insufficient balance.\n";
+                }
+                return;
             }
+        }
+        // Nếu không tìm thấy người nhận
+        if (!recipientFound) {
+            cout << "Recipient not found.\n";
             return;
         }
-    }
-
-    // Nếu không tìm thấy người nhận
-    if (!recipientFound) {
-        cout << "Recipient not found.\n";
-    }
-}
+        } else {
+            cout << "Mã OTP không đúng. Vui lòng thử lại." << endl;
+        }
+    } while (userInput != otp);
+} //sdadaa
 
 
 void ATM::checkBalance() {

@@ -21,11 +21,15 @@ public:
     void run();
     void login();
     void registerUser();
+    bool validatePassword(const string& password);
     void logout();
     void deposit();       // Nạp tiền
     void withdraw();      // Rút tiền
     void transfer();      // Chuyển tiền với mã pin
+    int generateOTP();
     void checkBalance();  // Xem số dư
+    
+
 };
 
 #endif

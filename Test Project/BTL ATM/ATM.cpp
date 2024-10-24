@@ -4,7 +4,7 @@
 #include <conio.h>
 #include <cctype>
 #include <ctime>   // cho time()
-#include <iomanip> // cho std::setw và std::setfill
+#include <iomanip> // cho setw và setfill
 
 using namespace std;
 

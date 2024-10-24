@@ -2,11 +2,11 @@
 
 using namespace std;
 
-User::User(const string& uname, const string& pword, const string& pin, double bal)
-    : username(uname), password(pword), transactionPin(pin), balance(bal) {}
+User::User(const string& num, const string& pword, const string& pin, double bal)
+    : numbers(num), password(pword), transactionPin(pin), balance(bal) {}
 
-string User::getUsername() const {
-    return username;
+string User::getNumbers() const {
+    return numbers;
 }
 
 bool User::checkPassword(const string& pword) const {

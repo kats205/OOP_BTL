@@ -102,9 +102,9 @@ void ATM::login() {
         return;
     }
 
-    string username, password;
-    cout << "Enter username: ";
-    cin >> username;
+    string numbers, password;
+    cout << "Enter your phone numbers: ";
+    cin >> numbers;
     cout << "Enter password: ";
     char ch;
     while ((ch = _getch()) != 13) { // Nhấn Enter để kết thúc nhập
@@ -130,13 +130,13 @@ void ATM::login() {
     cout << endl; // Xuống dòng
 
     for (User& user : users) {
-        if (user.getUsername() == username && user.checkPassword(password)) {
+        if (user.getNumbers() == numbers && user.checkPassword(password)) {
             loggedInUser = &user;
             cout << "Login successful!\n";
             return;
         }
     }
-    cout << "Invalid username or password.\n";
+    cout << "Invalid phone numbers or password.\n";
 }
 
 bool ATM::validatePassword(const string& password)
@@ -171,9 +171,9 @@ int ATM::generateOTP()
 
 void ATM::registerUser() {
     displayHeader("Register");
-    string username, password, pin;
-    cout << "Enter new username: ";
-    cin >> username;
+    string numbers, password, pin;
+    cout << "Enter your phone numbers: ";
+    cin >> numbers;
     cout << endl;
     char ch;
     // Nhập mật khẩu với kiểm tra
@@ -235,7 +235,7 @@ void ATM::registerUser() {
         if (lent != 6) cout << "Your pin just have 6 digits!\n";
     } while (lent != 6);
 
-    users.push_back(User(username, password, pin));
+    users.push_back(User(numbers, password, pin));
     cout << "User registered successfully!\n";
 }
 
@@ -308,11 +308,11 @@ void ATM::transfer() {
         return;
     }
 
-    string receiverUsername, pin;
+    string receiverNumbers, pin;
     double amount;
 
-    cout << "Enter recipient's username: ";
-    cin >> receiverUsername;
+    cout << "Enter recipient's phone numbers: ";
+    cin >> receiverNumbers;
     cout << "Enter amount to transfer: ";
     cin >> amount;
     cout << "Enter your transaction PIN: ";
@@ -336,7 +336,7 @@ void ATM::transfer() {
             // Kiểm tra người nhận có tồn tại hay không
             bool recipientFound = false;
             for (User& user : users) {
-                if (user.getUsername() == receiverUsername) {
+                if (user.getNumbers() == receiverNumbers) {
                     recipientFound = true;
 
                     // Kiểm tra nếu người gửi có đủ tiền để chuyển

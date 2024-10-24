@@ -1,12 +1,10 @@
 ﻿  ATM.cpp
-  Main.cpp
+  User.cpp
 D:\Hoc\Clone Repo\Test Project\BTL ATM\ATM.cpp(24,21): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 D:\Hoc\Clone Repo\Test Project\BTL ATM\ATM.cpp(28,22): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 D:\Hoc\Clone Repo\Test Project\BTL ATM\ATM.cpp(234,24): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
 D:\Hoc\Clone Repo\Test Project\BTL ATM\ATM.cpp(360,21): warning C4566: character represented by universal-character-name '\u0111' cannot be represented in the current code page (1252)
 D:\Hoc\Clone Repo\Test Project\BTL ATM\ATM.cpp(360,21): warning C4566: character represented by universal-character-name '\u1EED' cannot be represented in the current code page (1252)
 D:\Hoc\Clone Repo\Test Project\BTL ATM\ATM.cpp(360,21): warning C4566: character represented by universal-character-name '\u1EA1' cannot be represented in the current code page (1252)
-  User.cpp
   Generating Code...
-  LINK : D:\Hoc\Clone Repo\Test Project\x64\Debug\BTL ATM.exe not found or not built by the last incremental link; performing full link
   BTL ATM.vcxproj -> D:\Hoc\Clone Repo\Test Project\x64\Debug\BTL ATM.exe

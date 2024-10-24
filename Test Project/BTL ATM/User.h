@@ -8,14 +8,14 @@ using namespace std;
 
 class User {
 private:
-    string username;
+    string numbers;
     string password;
     string transactionPin;
     double balance;
 
 public:
-    User(const string& uname, const string& pword, const string& pin, double bal = 0.0);
-    string getUsername() const;
+    User(const string& num, const string& pword, const string& pin, double bal = 0.0);
+    string getNumbers() const;
     bool checkPassword(const string& pword) const;
     bool checkPin(const string& pin) const;
     void deposit(double amount);

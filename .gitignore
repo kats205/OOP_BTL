@@ -1,0 +1,37 @@
+# Bỏ qua tất cả các tệp object và binary
+*.o
+*.obj
+*.exe
+*.out
+
+# Bỏ qua tất cả các tệp log
+*.log
+
+# Bỏ qua thư mục build, bin, và temp
+/build/
+/bin/
+/temp/
+
+# Bỏ qua các tệp tạm thời của hệ điều hành
+.DS_Store
+Thumbs.db
+
+# Bỏ qua tệp cấu hình của IDE (như VSCode, CLion)
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Bỏ qua tệp cấu hình cá nhân
+config.ini
+.env
+
+# Bỏ qua tệp biên dịch từ CMake
+CMakeFiles/
+CMakeCache.txt
+
+# Bỏ qua các tệp nén và backup
+*.zip
+*.tar.gz
+*.bak
+*.tmp

@@ -1,11 +1,8 @@
 ﻿  ATM.cpp
-D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(24,21): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(28,22): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(234,24): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(360,21): warning C4566: character represented by universal-character-name '\u0111' cannot be represented in the current code page (1252)
-D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(360,21): warning C4566: character represented by universal-character-name '\u1EED' cannot be represented in the current code page (1252)
-D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(360,21): warning C4566: character represented by universal-character-name '\u1EA1' cannot be represented in the current code page (1252)
-  Main.cpp
-  User.cpp
-  Generating Code...
-  BTL ATM.vcxproj -> D:\ITCLASS\OOP_BTL\Test Project\x64\Debug\BTL ATM.exe
+D:\ITCLASS\test\Test Project\BTL ATM\ATM.cpp(24,21): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\ITCLASS\test\Test Project\BTL ATM\ATM.cpp(28,22): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\ITCLASS\test\Test Project\BTL ATM\ATM.cpp(234,24): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+D:\ITCLASS\test\Test Project\BTL ATM\ATM.cpp(360,21): warning C4566: character represented by universal-character-name '\u0111' cannot be represented in the current code page (1252)
+D:\ITCLASS\test\Test Project\BTL ATM\ATM.cpp(360,21): warning C4566: character represented by universal-character-name '\u1EED' cannot be represented in the current code page (1252)
+D:\ITCLASS\test\Test Project\BTL ATM\ATM.cpp(360,21): warning C4566: character represented by universal-character-name '\u1EA1' cannot be represented in the current code page (1252)
+  BTL ATM.vcxproj -> D:\ITCLASS\test\Test Project\x64\Debug\BTL ATM.exe

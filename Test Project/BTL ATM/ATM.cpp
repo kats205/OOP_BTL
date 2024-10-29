@@ -369,5 +369,13 @@ void ATM::checkBalance() {
         cout << "Please login first.\n";
         return;
     }
-    cout << "Your balance is: " << loggedInUser->getBalance() << "\n";
+    cout << "\033[1;35m";
+    cout << "\n|=========================================|" << "\n";
+    cout << "    >>[Account]:     " << "\033[1;37m" << loggedInUser->getNumbers() << "\n";
+    cout << "\033[1;35m";
+    cout << "|-----------------------------------------|" << "\n";
+    cout << "    >>[Your balance is]:     " << "\033[1;37m" << loggedInUser->getBalance() << "\n";
+    cout << "\033[1;35m";
+    cout << "|=========================================|" << "\n\n";
+    cout << "\033[0m";
 }

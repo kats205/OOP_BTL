@@ -171,9 +171,13 @@ int ATM::generateOTP()
 
 void ATM::registerUser() {
     displayHeader("Register");
-    string numbers, password, pin;
+    string numbers, username, password, pin;
     cout << "Enter your phone numbers: ";
     cin >> numbers;
+    cout << endl;
+    cout << "Enter the user name: ";
+    cin.ignore();
+    getline(cin, username);
     cout << endl;
     char ch;
     // Nhập mật khẩu với kiểm tra
@@ -235,7 +239,8 @@ void ATM::registerUser() {
         if (lent != 6) cout << "Your pin just have 6 digits!\n";
     } while (lent != 6);
 
-    users.push_back(User(numbers, password, pin));
+    cout << endl;
+    users.push_back(User(numbers, username, password, pin));
     cout << "User registered successfully!\n";
 }
 
@@ -357,10 +362,10 @@ void ATM::transfer() {
             }
         }
         else {
-            cout << "Mã OTP không đúng. Vui lòng thử lại." << endl;
+            cout << "Incorrect OTP code, please try again..." << endl;
         }
     } while (userInput != otp);
-} //sdadaa
+} 
 
 
 void ATM::checkBalance() {
@@ -371,7 +376,10 @@ void ATM::checkBalance() {
     }
     cout << "\033[1;35m";
     cout << "\n|=========================================|" << "\n";
-    cout << "    >>[Account]:     " << "\033[1;37m" << loggedInUser->getNumbers() << "\n";
+    cout << "    >>[Account]:        " << "\033[1;37m" << loggedInUser->getNumbers() << "\n";
+    cout << "\033[1;35m";
+    cout << "|-----------------------------------------|" << "\n";
+    cout << "    >>[User Name]: " << "\033[1;37m" << loggedInUser->getUserName() << "\n";
     cout << "\033[1;35m";
     cout << "|-----------------------------------------|" << "\n";
     cout << "    >>[Your balance is]:     " << "\033[1;37m" << loggedInUser->getBalance() << "\n";

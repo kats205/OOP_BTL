@@ -2,8 +2,12 @@
 
 using namespace std;
 
-User::User(const string& num, const string& pword, const string& pin, double bal)
-    : numbers(num), password(pword), transactionPin(pin), balance(bal) {}
+User::User(const string& num, const string& name, const string& pword, const string& pin, double bal)
+    : numbers(num), username(name), password(pword), transactionPin(pin), balance(bal) {}
+
+string User::getUserName() const {
+    return username;
+}
 
 string User::getNumbers() const {
     return numbers;

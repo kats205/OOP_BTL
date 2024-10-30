@@ -17,20 +17,24 @@ void ATM::displayHeader(const string& title) {
     system("cls");  // Reset màn hình
 #endif
     cout << "\033[1;36m";  // Màu xanh dương sáng
-    cout << "===========================================\n";
+    cout << "===================================================================================================\n";
 
     string bankName = "W3O BANK";
-    int width = 43; // Độ rộng của khung
+    int width = 100; // Độ rộng của khung
     int bankPadding = (width - bankName.length()) / 2;
-    cout << "||" << string(bankPadding, ' ') << bankName << string(width - bankPadding - bankName.length() - 4, ' ') << "||\n";
+    cout << "||" << string(bankPadding, ' ') << bankName
+        << string(width - bankPadding - bankName.length() - 5, ' ') << "||\n";
 
-    cout << "===========================================\n";
+    cout << "===================================================================================================\n";
+
     int titlePadding = (width - title.length()) / 2;
-    cout << "||" << string(titlePadding, ' ') << title << string(width - titlePadding - title.length() - 4, ' ') << "||\n";
+    cout << "||" << string(titlePadding, ' ') << title
+        << string(width - titlePadding - title.length() - 5, ' ') << "||\n";
 
-    cout << "===========================================\n";
+    cout << "===================================================================================================\n";
     cout << "\033[0m";  // Reset lại màu sắc
 }
+
 
 void ATM::run() {
     int choice;
@@ -63,31 +67,31 @@ void ATM::showMenu() {
     cout << "\033[1;34m"; // Màu xanh dương sáng cho tiêu đề
 
     // Căn giữa khung tiêu đề bằng cách thêm khoảng trắng
-    cout << "           +---------------------+\n";
-    cout << "           |   W3O BANK MENU     |\n";
-    cout << "           +---------------------+\n";
+    cout << "                                        +---------------------+\n";
+    cout << "                                        |   W3O BANK MENU     |\n";
+    cout << "                                        +---------------------+\n";
 
     cout << "\033[0m"; // Reset lại màu sắc
 
     // Khung lựa chọn với các ký tự khác và ngắn hơn
     cout << "\033[1;32m";  // Màu xanh lá sáng cho khung
-    cout << "  +-------------------------------------+\n";
-    cout << "  | 1. Login                            |\n";
-    cout << "  +-------------------------------------+\n";
-    cout << "  | 2. Register                         |\n";
-    cout << "  +-------------------------------------+\n";
-    cout << "  | 3. Deposit                          |\n";
-    cout << "  +-------------------------------------+\n";
-    cout << "  | 4. Withdraw                         |\n";
-    cout << "  +-------------------------------------+\n";
-    cout << "  | 5. Transfer                         |\n";
-    cout << "  +-------------------------------------+\n";
-    cout << "  | 6. Check Balance                    |\n";
-    cout << "  +-------------------------------------+\n";
-    cout << "  | 7. Logout                           |\n";
-    cout << "  +-------------------------------------+\n";
-    cout << "  | 8. Exit                             |\n";
-    cout << "  +-------------------------------------+\n";
+    cout << "                               +-------------------------------------+\n";
+    cout << "                               | 1. Login                            |\n";
+    cout << "                               +-------------------------------------+\n";
+    cout << "                               | 2. Register                         |\n";
+    cout << "                               +-------------------------------------+\n";
+    cout << "                               | 3. Deposit                          |\n";
+    cout << "                               +-------------------------------------+\n";
+    cout << "                               | 4. Withdraw                         |\n";
+    cout << "                               +-------------------------------------+\n";
+    cout << "                               | 5. Transfer                         |\n";
+    cout << "                               +-------------------------------------+\n";
+    cout << "                               | 6. Check Balance                    |\n";
+    cout << "                               +-------------------------------------+\n";
+    cout << "                               | 7. Logout                           |\n";
+    cout << "                               +-------------------------------------+\n";
+    cout << "                               | 8. Exit                             |\n";
+    cout << "                               +-------------------------------------+\n";
     cout << "\033[0m"; // Reset lại màu sắc
 
     cout << ">> Choose an option: ";
@@ -138,6 +142,11 @@ void ATM::login() {
     }
     cout << "Invalid phone numbers or password.\n";
 }
+bool ATM::isValidPhoneNumber(const string& phoneNumber) {
+    // Kiểm tra nếu số điện thoại có 10 chữ số và bắt đầu bằng các đầu số hợp lệ
+    regex pattern("^(03|07|08|09|01)\\d{8}$");
+    return regex_match(phoneNumber, pattern);
+}
 
 bool ATM::validatePassword(const string& password)
 {
@@ -172,8 +181,13 @@ int ATM::generateOTP()
 void ATM::registerUser() {
     displayHeader("Register");
     string numbers, username, password, pin;
-    cout << "Enter your phone numbers: ";
-    cin >> numbers;
+    do {
+        cout << "Enter your phone numbers: ";
+        cin >> numbers;
+        if (!isValidPhoneNumber(numbers)) {
+            cout << "Invalid phone number format, please try again.\n";
+        }
+    } while (!isValidPhoneNumber(numbers));
     cout << endl;
     cout << "Enter the user name: ";
     cin.ignore();
@@ -347,7 +361,21 @@ void ATM::transfer() {
                     // Kiểm tra nếu người gửi có đủ tiền để chuyển
                     if (loggedInUser->withdraw(amount)) {
                         user.deposit(amount);
-                        cout << "Transfer successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
+                        cout << "\033[1;35m";
+                        cout << "\n|================================================================|" << "\n";
+                        cout << "\033[1;37m"<< "    Transfer to "  << user.getUserName() << " successful! -"<<amount<<"vnd\n";
+                        cout << "\033[1;35m";
+                        cout << "|----------------------------------------------------------------|" << "\n";
+                        cout << "    >>[Receiver]:        " << "\033[1;37m" << user.getNumbers() << "\n";
+                        cout << "\033[1;35m";
+                        cout << "|----------------------------------------------------------------|" << "\n";
+                        cout << "    >>[Recipient Name]: " << "\033[1;37m" << user.getUserName() << "\n";
+                        cout << "\033[1;35m";
+                        cout << "|----------------------------------------------------------------|" << "\n";
+                        cout << "    >>[Amount]:     " << "\033[1;37m" << user.getBalance() << "vnd\n";
+                        cout << "\033[1;35m";
+                        cout << "|================================================================|" << "\n\n";
+                        cout << "\033[0m";
                     }
                     else {
                         cout << "Insufficient balance.\n";
@@ -375,15 +403,15 @@ void ATM::checkBalance() {
         return;
     }
     cout << "\033[1;35m";
-    cout << "\n|=========================================|" << "\n";
+    cout << "\n|================================================================|" << "\n";
     cout << "    >>[Account]:        " << "\033[1;37m" << loggedInUser->getNumbers() << "\n";
     cout << "\033[1;35m";
-    cout << "|-----------------------------------------|" << "\n";
+    cout << "|----------------------------------------------------------------|" << "\n";
     cout << "    >>[User Name]: " << "\033[1;37m" << loggedInUser->getUserName() << "\n";
     cout << "\033[1;35m";
-    cout << "|-----------------------------------------|" << "\n";
+    cout << "|----------------------------------------------------------------|" << "\n";
     cout << "    >>[Your balance is]:     " << "\033[1;37m" << loggedInUser->getBalance() << "\n";
     cout << "\033[1;35m";
-    cout << "|=========================================|" << "\n\n";
+    cout << "|================================================================|" << "\n\n";
     cout << "\033[0m";
 }

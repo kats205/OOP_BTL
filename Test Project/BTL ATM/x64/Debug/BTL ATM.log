@@ -1,5 +1,5 @@
 ﻿  ATM.cpp
 D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(24,21): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(28,22): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(238,24): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(30,22): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\ITCLASS\OOP_BTL\Test Project\BTL ATM\ATM.cpp(252,24): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
   BTL ATM.vcxproj -> D:\ITCLASS\OOP_BTL\Test Project\x64\Debug\BTL ATM.exe

@@ -5,6 +5,7 @@
 #include "User.h"
 #include <vector>
 #include <string>
+#include <regex>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ private:
     User* loggedInUser = nullptr; // Người dùng hiện tại (nếu có)
 
     void showMenu();
-    void displayHeader(const string& title); // Giao diện xịn sò với tiêu đề động
+    void displayHeader(const string& title); 
 
 public:
     ATM();
@@ -28,7 +29,7 @@ public:
     void transfer();      // Chuyển tiền với mã pin
     int generateOTP();
     void checkBalance();  // Xem số dư
-
+    bool isValidPhoneNumber(const string& numbers);
 
 };
 

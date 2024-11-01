@@ -21,15 +21,21 @@ public:
     ATM();
     void run();
     void login();
-    void registerUser();
-    bool validatePassword(const string& password);
     void logout();
+    void registerUser();
+
+    bool isValidPhoneNumber(const string& numbers);
+    string inputPhoneNumber();
+
+    bool validatePassword(const string& password);
+
     void deposit();       // Nạp tiền
     void withdraw();      // Rút tiền
     void transfer();      // Chuyển tiền với mã pin
+
     int generateOTP();
     void checkBalance();  // Xem số dư
-    bool isValidPhoneNumber(const string& numbers);
+    
 
 };
 

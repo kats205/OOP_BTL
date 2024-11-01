@@ -1,5 +1,6 @@
 ﻿#include "ATM.h"
 #include <iostream>
+#include <string>
 #include <cstdlib>  // Dùng để gọi system("clear") hoặc system("cls")
 #include <conio.h>
 #include <cctype>
@@ -142,10 +143,42 @@ void ATM::login() {
     }
     cout << "Invalid phone numbers or password.\n";
 }
-bool ATM::isValidPhoneNumber(const string& phoneNumber) {
-    // Kiểm tra nếu số điện thoại có 10 chữ số và bắt đầu bằng các đầu số hợp lệ
-    regex pattern("^(03|07|08|09|01)\\d{8}$");
-    return regex_match(phoneNumber, pattern);
+
+bool ATM::isValidPhoneNumber(const string& phone) {
+    // Kiểm tra nếu số bắt đầu bằng '0' và có độ dài 10 số
+    if (phone.length() == 10 && phone[0] == '0') {
+        string index2 = phone.substr(0, 2); // Substr dùng để trích chuỗi string với độ dài của chuổi từ vị trí k
+        string index3 = phone.substr(0, 3);
+
+        if (index2 == "08" || index2 == "09" || index2 == "03" || index2 == "07" ||
+            index3 == "052" || index3 == "056" || index3 == "058" || index3 == "059") {
+            return true;
+        }
+    }
+    // Kiểm tra nếu số bắt đầu bằng "+84" và có độ dài 12 số
+    else if (phone.length() == 12 && phone.substr(0, 3) == "+84") {
+        string index2 = phone.substr(3, 2);
+        string index3 = phone.substr(3, 3);
+
+        if (index2 == "08" || index2 == "09" || index2 == "03" || index2 == "07" ||
+            index3 == "052" || index3 == "056" || index3 == "058" || index3 == "059") {
+            return true;
+        }
+    }
+    else return false;
+}
+
+string ATM::inputPhoneNumber() {
+    string phone;
+    do {
+        cout << "Enter your phone number: ";
+        cin.ignore();
+        getline(cin, phone);
+        if (!isValidPhoneNumber(phone)) {
+            cout << "Invalid phone number format, please try again." << endl;
+        }
+    } while (!isValidPhoneNumber(phone));
+    return phone;
 }
 
 bool ATM::validatePassword(const string& password)
@@ -180,15 +213,9 @@ int ATM::generateOTP()
 
 void ATM::registerUser() {
     displayHeader("Register");
-    string numbers, username, password, pin;
-    do {
-        cout << "Enter your phone numbers: ";
-        cin >> numbers;
-        if (!isValidPhoneNumber(numbers)) {
-            cout << "Invalid phone number format, please try again.\n";
-        }
-    } while (!isValidPhoneNumber(numbers));
-    cout << endl;
+    string username, password, pin;
+    string numbers = inputPhoneNumber();
+    cout << "Your phone number is valid" << endl;
     cout << "Enter the user name: ";
     cin.ignore();
     getline(cin, username);

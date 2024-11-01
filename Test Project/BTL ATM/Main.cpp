@@ -12,6 +12,4 @@ int main() {
     cin.ignore();  // Bỏ qua ký tự enter trước đó (nếu có)
     cin.get();     // Chờ người dùng nhấn Enter để thoát
     return 0;
-    //heloo
-
 }

@@ -10,15 +10,14 @@ ATM::ATM() : loggedInUser(nullptr) {}
 
 void ATM::run() {
 
-    
+    Menu::displayHeader("<<WELCOME TO W3O BANK>>");
+    loadUsersFromFile();  // Load users from file at startup
+    Menu::showMenu();
 
     int choice;
     do {
-        Menu::displayHeader("<<WELCOME TO W3O BANK>>");
-        loadUsersFromFile();  // Load users from file at startup
-        Menu::showMenu();
+        
         cin >> choice;
-
         switch (choice) {
         case 1: registerUser(); 
             cout << "Press Enter to continue...";
@@ -33,6 +32,7 @@ void ATM::run() {
         case 3: cout << "Goodbye!" << endl;
             break;
         default: cout << "Invalid choice, try again." << endl;
+            cout << ">> Choose an option: ";
             break;
         }
     } while (choice != 3);
@@ -42,7 +42,7 @@ void ATM::registerUser() {
     Menu::displayHeader("Register");
     string username, password, pin;
     string numbers = inputPhoneNumber();
-    cout << "Your phone number is valid" << endl;
+    cout << "Your phone number is valid\n" << endl;
     cout << "Enter the user name: ";
     //cin.ignore();
     getline(cin, username);
@@ -150,6 +150,10 @@ void ATM::login() {
         if (user.getPhoneNumber() == numbers && user.validatePassword(password)) {
             loggedInUser = &user;
             cout << "Login successful!\n";
+            // Thêm dòng sau ?? d?ng l?i tr??c khi k?t thúc ch??ng trình
+            cout << "Press Enter to login...";
+            cin.ignore();  // B? qua ký t? enter tr??c ?ó (n?u có)
+            cin.get();     // Ch? ng??i dùng nh?n Enter ?? thoát
             system("cls");
             loginAfter();
             return;
@@ -364,16 +368,35 @@ bool ATM::isValidPhoneNumber(const string& phone) {
 }
 string ATM::inputPhoneNumber() {
     string phone;
+    cin.ignore();
+    bool firstAttempt = true; // Biến để theo dõi nếu là lần nhập đầu tiên
     do {
-        cout << "Enter your phone number: ";
-        cin.ignore();
-        getline(cin, phone);
-        if (!isValidPhoneNumber(phone)) {
+        if (!firstAttempt) {
             cout << "Invalid phone number format, please try again." << endl;
         }
-    } while (!isValidPhoneNumber(phone));
+        cout << "Enter your phone number: ";
+        getline(cin, phone);
+        firstAttempt = false; // Sau lần nhập đầu tiên
+
+        // Kiểm tra xem số điện thoại đã được đăng ký chưa
+        if (isPhoneNumberRegistered(phone)) {
+            cout << "This phone number has already been registered. Please try a different one." << endl;
+            firstAttempt = true; // Để tiếp tục yêu cầu nhập lại
+        }
+    } while (!isValidPhoneNumber(phone) || isPhoneNumberRegistered(phone));
     return phone;
 }
+
+// Hàm kiểm tra xem số điện thoại đã được đăng ký hay chưa
+bool ATM::isPhoneNumberRegistered(const string& phone) {
+    for (const UserAccount& user : users) {
+        if (user.getPhoneNumber() == phone) {
+            return true; // Số điện thoại đã được đăng ký
+        }
+    }
+    return false; // Số điện thoại chưa được đăng ký
+}
+
 bool ATM::validatePassword(const string& password) {
     bool hasUpper = false;
     bool hasDigit = false;
@@ -424,15 +447,6 @@ void ATM::loadUsersFromFile() {
 
     inFile.close();
 
-    //cout << "Loaded users from file:\n";
-    //int index = 1;
-    //for (const auto& user : users) {
-    //    cout << "User " << index++ << ":\n";
-    //    cout << "  Phone: " << user.getPhoneNumber() << "\n"
-    //        << "  Username: " << user.getUserName() << "\n"
-    //        << "  Balance: " << user.getBalance() << "\n";
-    //    cout << "-----------------------------------\n";
-    //}
 }
 
 

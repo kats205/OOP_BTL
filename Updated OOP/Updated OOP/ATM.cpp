@@ -13,14 +13,11 @@ using namespace std;
 ATM::ATM() : loggedInUser(nullptr) {}
 
 void ATM::run() {
-<<<<<<< HEAD
 
     Menu::displayHeader("<<WELCOME TO W3O BANK>>");
     loadUsersFromFile();  // Load users from file at startup
     Menu::showMenu();
 
-=======
->>>>>>> 047e5987edb392ce88c7d7be362d5027d070f790
     int choice;
     do {
         
@@ -398,6 +395,10 @@ string ATM::inputPhoneNumber() {
     bool firstAttempt = true; // Biến để theo dõi nếu là lần nhập đầu tiên
     do {
         if (!firstAttempt) {
+        if (!firstAttempt) {
+        cout << "Enter your phone number: ";
+        getline(cin, phone);
+        if (!isValidPhoneNumber(phone)) {
             cout << "Invalid phone number format, please try again." << endl;
         }
         cout << "Enter your phone number: ";
@@ -412,6 +413,7 @@ string ATM::inputPhoneNumber() {
     } while (!isValidPhoneNumber(phone) || isPhoneNumberRegistered(phone));
     return phone;
 }
+
 // Hàm kiểm tra xem số điện thoại đã được đăng ký hay chưa
 bool ATM::isPhoneNumberRegistered(const string& phone) {
     for (const UserAccount& user : users) {
@@ -421,6 +423,7 @@ bool ATM::isPhoneNumberRegistered(const string& phone) {
     }
     return false; // Số điện thoại chưa được đăng ký
 }
+
 bool ATM::validatePassword(const string& password) {
     bool hasUpper = false;
     bool hasDigit = false;

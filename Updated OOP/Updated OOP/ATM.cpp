@@ -1,4 +1,5 @@
 ﻿#include "ATM.h"
+#include "Menu.h"
 #include <iostream>
 #include <ctime>
 #include <cstdlib>
@@ -9,8 +10,8 @@ ATM::ATM() : loggedInUser(nullptr) {}
 void ATM::run() {
     int choice;
     do {
-        displayHeader("<<WELCOME TO W3O BANK>>");
-        showMenu();
+        Menu::displayHeader("<<WELCOME TO W3O BANK>>");
+        Menu::showMenu();
         cin >> choice;
 
         switch (choice) {
@@ -33,7 +34,7 @@ void ATM::run() {
 }
 
 void ATM::registerUser() {
-    displayHeader("Register");
+    Menu::displayHeader("Register");
     string username, password, pin;
     string numbers = inputPhoneNumber();
     cout << "Your phone number is valid" << endl;
@@ -109,12 +110,7 @@ void ATM::registerUser() {
 }
 
 void ATM::login() {
-    displayHeader("Login");
-
-    if (loggedInUser != nullptr) {
-        cout << "You are already logged in.\n";
-        return;
-    }
+    Menu::displayHeader("Login");
 
     string numbers, password;
     cout << "Enter your phone numbers: ";
@@ -158,8 +154,8 @@ void ATM::login() {
 void ATM::loginAfter() {
     int choice;
     do {
-        displayHeader("User Login Account");
-        showMenuLoginAfter();
+        Menu::displayHeader("User Login Account");
+        Menu::showMenuLoginAfter();
         cin >> choice;
 
         switch (choice) {
@@ -180,7 +176,7 @@ void ATM::loginAfter() {
 }
 
 void ATM::logout() {
-    displayHeader("Logout");
+    Menu::displayHeader("Logout");
     if (loggedInUser == nullptr) {
         cout << "You are not logged in.\n";
         return;
@@ -190,11 +186,7 @@ void ATM::logout() {
 }
 
 void ATM::deposit() {
-    displayHeader("Deposit");
-    if (loggedInUser == nullptr) {
-        cout << "Please login first.\n";
-        return;
-    }
+    Menu::displayHeader("Deposit");
     string pin;
     do {
         cout << "Enter your transaction PIN: ";
@@ -213,11 +205,7 @@ void ATM::deposit() {
 }
 
 void ATM::withdraw() {
-    displayHeader("Withdraw");
-    if (loggedInUser == nullptr) {
-        cout << "Please login first.\n";
-        return;
-    }
+    Menu::displayHeader("Withdraw");
 
     string pin;
     do {
@@ -240,11 +228,7 @@ void ATM::withdraw() {
     }
 }
 void ATM::transfer() {
-    displayHeader("Transfer");
-    if (loggedInUser == nullptr) {
-        cout << "Please login first.\n";
-        return;
-    }
+    Menu::displayHeader("Transfer");
 
     string receiverNumbers, pin;
     double amount;
@@ -315,11 +299,7 @@ void ATM::transfer() {
 }
 
 void ATM::checkBalance() {
-    displayHeader("Check Balance");
-    if (loggedInUser == nullptr) {
-        cout << "Please login first.\n";
-        return;
-    }
+    Menu::displayHeader("Check Balance");
     cout << "\033[1;35m";
     cout << "\n|================================================================|" << "\n";
     cout << "    >>[Account]:         " << "\033[1;37m" << loggedInUser->getPhoneNumber() << "\n";
@@ -398,75 +378,4 @@ int ATM::generateOTP() {
     return rand() % 900000 + 100000;
 }
 
-void ATM::displayHeader(const string& title) {
-#ifndef DEBUG
-    system("cls");  // Reset màn hình
-#endif
-    cout << "\033[1;36m";  // Màu xanh dương sáng
-    cout << "===================================================================================================\n";
 
-    string bankName = "W3O BANK";
-    int width = 100; // Độ rộng của khung
-    int bankPadding = (width - bankName.length()) / 2;
-    cout << "||" << string(bankPadding, ' ') << bankName
-        << string(width - bankPadding - bankName.length() - 5, ' ') << "||\n";
-
-    cout << "===================================================================================================\n";
-
-    int titlePadding = (width - title.length()) / 2;
-    cout << "||" << string(titlePadding, ' ') << title
-        << string(width - titlePadding - title.length() - 5, ' ') << "||\n";
-
-    cout << "===================================================================================================\n";
-    cout << "\033[0m";  // Reset lại màu sắc
-}
-void ATM::showMenu() {
-    cout << "\033[1;34m"; // Màu xanh dương sáng cho tiêu đề
-
-    // Căn giữa khung tiêu đề bằng cách thêm khoảng trắng
-    cout << "                                        +---------------------+\n";
-    cout << "                                        |   W3O BANK MENU     |\n";
-    cout << "                                        +---------------------+\n";
-
-    cout << "\033[0m"; // Reset lại màu sắc
-
-    // Khung lựa chọn với các ký tự khác và ngắn hơn
-    cout << "\033[1;32m";  // Màu xanh lá sáng cho khung
-    cout << "                               +-------------------------------------+\n";
-    cout << "                               | 1. Register                         |\n";
-    cout << "                               +-------------------------------------+\n";
-    cout << "                               | 2. Login                            |\n";
-    cout << "                               +-------------------------------------+\n";
-    cout << "                               | 3. Exit                             |\n";
-    cout << "                               +-------------------------------------+\n";
-    cout << "\033[0m"; // Reset lại màu sắc
-
-    cout << ">> Choose an option: ";
-}
-void ATM::showMenuLoginAfter() {
-    cout << "\033[1;34m"; // Màu xanh dương sáng cho tiêu đề
-
-    // Căn giữa khung tiêu đề bằng cách thêm khoảng trắng
-    cout << "                                        +---------------------+\n";
-    cout << "                                        |   W3O BANK MENU     |\n";
-    cout << "                                        +---------------------+\n";
-
-    cout << "\033[0m"; // Reset lại màu sắc
-
-    // Khung lựa chọn với các ký tự khác và ngắn hơn
-    cout << "\033[1;32m";  // Màu xanh lá sáng cho khung
-    cout << "                               +-------------------------------------+\n";
-    cout << "                               | 1. Deposit                          |\n";
-    cout << "                               +-------------------------------------+\n";
-    cout << "                               | 2. Withdraw                         |\n";
-    cout << "                               +-------------------------------------+\n";
-    cout << "                               | 3. Transfer                         |\n";
-    cout << "                               +-------------------------------------+\n";
-    cout << "                               | 4. Check Balance                    |\n";
-    cout << "                               +-------------------------------------+\n";
-    cout << "                               | 5. Logout                           |\n";
-    cout << "                               +-------------------------------------+\n";
-    cout << "\033[0m"; // Reset lại màu sắc
-
-    cout << ">> Choose an option: ";
-}

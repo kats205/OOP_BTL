@@ -1,16 +1,13 @@
 #pragma once
 #include <vector>
 #include "UserAccount.h"
+
 using namespace std;
 
 class ATM {
 private:
     vector<UserAccount> users;
     UserAccount* loggedInUser;
-
-    void showMenu();
-    void showMenuLoginAfter();
-    void displayHeader(const string& title);
 public:
     ATM();
     

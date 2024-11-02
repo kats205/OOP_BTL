@@ -131,11 +131,13 @@
     <ClCompile Include="Account.cpp" />
     <ClCompile Include="ATM.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Menu.cpp" />
     <ClCompile Include="UserAccount.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Account.h" />
     <ClInclude Include="ATM.h" />
+    <ClInclude Include="Menu.h" />
     <ClInclude Include="UserAccount.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

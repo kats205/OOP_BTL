@@ -207,8 +207,10 @@ void ATM::deposit() {
         double amount;
         cout << "Enter amount to deposit: ";
         cin >> amount;
-        if (amount < 0) cout << "Sorry, the deposit amount can not be negative, please try again!\n";
-        return;
+        if (amount < 0) {
+            cout << "Sorry, the transfer amount can not be negative, please try again!\n";
+            return;
+        }
     
     loggedInUser->deposit(amount);
     cout << "Deposit successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
@@ -231,8 +233,10 @@ void ATM::withdraw() {
     double amount;
     cout << "Enter amount to withdraw: ";
     cin >> amount;
-    if (amount < 0) cout << "Sorry, the withdraw amount can not be negative, please try again!\n";
-    return;
+    if (amount < 0) {
+        cout << "Sorry, the transfer amount can not be negative, please try again!\n";
+        return;
+    }
 
     if (loggedInUser->withdraw(amount)) {
         cout << "Withdrawal successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
@@ -252,8 +256,10 @@ void ATM::transfer() {
     cin >> receiverNumbers;
     cout << "Enter amount to transfer: ";
     cin >> amount;
-    if (amount < 0) cout << "Sorry, the transfer amount can not be negative, please try again!\n";
-    return;
+    if (amount < 0) {
+        cout << "Sorry, the transfer amount can not be negative, please try again!\n";
+        return;
+    }
 
     do {
         cout << "Enter your transaction PIN: ";
@@ -446,7 +452,7 @@ void ATM::saveUserToFile(const UserAccount& user) {
     outFile.close();
 }
 void ATM::saveAllUsersToFile() {
-    ofstream outFile("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
+    ofstream outFile("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\temp_user.txt");
     if (!outFile) {
         cout << "Error opening file!" << endl;
         return;
@@ -461,6 +467,9 @@ void ATM::saveAllUsersToFile() {
     }
 
     outFile.close();
-
-
+    // Rename temp file to the original file
+    remove("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
+    rename("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\temp_user.txt",
+        "D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
 }
+

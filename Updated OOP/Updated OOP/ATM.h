@@ -25,6 +25,7 @@ public:
     void checkBalance();
     bool isValidPhoneNumber(const string& phone);
     string inputPhoneNumber();
+    bool isPhoneNumberRegistered(const string& phone);
     bool validatePassword(const string& password);
     int generateOTP();
 

@@ -384,14 +384,32 @@ bool ATM::isValidPhoneNumber(const string& phone) {
 }
 string ATM::inputPhoneNumber() {
     string phone;
+    cin.ignore();
+    bool firstAttempt = true; // Biến để theo dõi nếu là lần nhập đầu tiên
     do {
-        cout << "Enter your phone number: ";
-        getline(cin, phone);
-        if (!isValidPhoneNumber(phone)) {
+        if (!firstAttempt) {
             cout << "Invalid phone number format, please try again." << endl;
         }
-    } while (!isValidPhoneNumber(phone));
+        cout << "Enter your phone number: ";
+        getline(cin, phone);
+        firstAttempt = false; // Sau lần nhập đầu tiên
+
+        // Kiểm tra xem số điện thoại đã được đăng ký chưa
+        if (isPhoneNumberRegistered(phone)) {
+            cout << "This phone number has already been registered. Please try a different one." << endl;
+            firstAttempt = true; // Để tiếp tục yêu cầu nhập lại
+        }
+    } while (!isValidPhoneNumber(phone) || isPhoneNumberRegistered(phone));
     return phone;
+}
+// Hàm kiểm tra xem số điện thoại đã được đăng ký hay chưa
+bool ATM::isPhoneNumberRegistered(const string& phone) {
+    for (const UserAccount& user : users) {
+        if (user.getPhoneNumber() == phone) {
+            return true; // Số điện thoại đã được đăng ký
+        }
+    }
+    return false; // Số điện thoại chưa được đăng ký
 }
 bool ATM::validatePassword(const string& password) {
     bool hasUpper = false;

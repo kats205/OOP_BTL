@@ -5,7 +5,7 @@ UserAccount::UserAccount(const string& accNum, double initialBalance, const stri
     : Account(accNum, initialBalance), username(username), phoneNumber(phone),
     password(pass), transactionPIN(pin) {}
 
-string UserAccount::getUsername() const {
+string UserAccount::getUserName() const {
     return username;
 }
 
@@ -20,3 +20,4 @@ bool UserAccount::validatePassword(const string& pass) const {
 bool UserAccount::validateTransactionPIN(const string& pin) const {
     return transactionPIN == pin;
 }
+

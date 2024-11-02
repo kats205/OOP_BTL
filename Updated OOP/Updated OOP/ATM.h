@@ -8,11 +8,15 @@ private:
     vector<UserAccount> users;
     UserAccount* loggedInUser;
 
+    void showMenu();
+    void showMenuLoginAfter();
+    void displayHeader(const string& title);
 public:
     ATM();
-
+    
     void run();
     void login();
+    void loginAfter();
     void logout();
     void registerUser();
     void deposit();
@@ -24,3 +28,4 @@ public:
     bool validatePassword(const string& password);
     int generateOTP();
 };
+

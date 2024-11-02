@@ -14,13 +14,14 @@ ATM::ATM() : loggedInUser(nullptr) {}
 
 void ATM::run() {
 
-    Menu::displayHeader("<<WELCOME TO W3O BANK>>");
+    
     loadUsersFromFile();  // Load users from file at startup
-    Menu::showMenu();
+    
 
     int choice;
     do {
-        
+        Menu::displayHeader("<<WELCOME TO W3O BANK>>");
+        Menu::showMenu();
         cin >> choice;
         switch (choice) {
         case 1: registerUser(); 
@@ -174,19 +175,30 @@ void ATM::loginAfter() {
         cin >> choice;
 
         switch (choice) {
-        case 1: deposit(); break;
-        case 2: withdraw(); break;
-        case 3: transfer(); break;
-        case 4: checkBalance(); break;
-        case 5: cout << "Goodbye!" << endl; break;
-        default: cout << "Invalid choice, try again." << endl; break;
-        }
-
-        if (choice != 5) {
+        case 1: deposit(); 
             cout << "Press Enter to continue...";
             cin.ignore();
             cin.get();
+            break;
+        case 2: withdraw(); 
+            cout << "Press Enter to continue...";
+            cin.ignore();
+            cin.get();
+            break;
+        case 3: transfer(); 
+            cout << "Press Enter to continue...";
+            cin.ignore();
+            cin.get();
+            break;
+        case 4: checkBalance(); 
+            cout << "Press Enter to continue...";
+            cin.ignore();
+            cin.get();break;
+        case 5: cout << "Goodbye!" << endl;
+            break;
+        default: cout << "Invalid choice, try again." << endl; break;
         }
+            
     } while (choice != 5);
 }
 
@@ -331,24 +343,24 @@ void ATM::transfer() {
     } while (userInput != otp);
 }
 
-static string getCurrentDateTime() {
-    time_t now = time(0); // Lấy thời gian hiện tại
-    tm ltm;
-    localtime_s(&ltm, &now); // Sử dụng localtime_s thay vì localtime
+//static string getCurrentDateTime() {
+//    time_t now = time(0); // Lấy thời gian hiện tại
+//    tm ltm;
+//    localtime_s(&ltm, &now); // Sử dụng localtime_s thay vì localtime
+//
+//    stringstream ss;
+//    ss << setw(2) << setfill('0') << ltm.tm_mday << "/"
+//        << setw(2) << setfill('0') << (ltm.tm_mon + 1) << "/"
+//        << setw(2) << setfill('0') << (ltm.tm_year % 100) << " "
+//        << setw(2) << setfill('0') << ltm.tm_hour << ":"
+//        << setw(2) << setfill('0') << ltm.tm_min;
+//
+//    return ss.str();
+//}
 
-    stringstream ss;
-    ss << setw(2) << setfill('0') << ltm.tm_mday << "/"
-        << setw(2) << setfill('0') << (ltm.tm_mon + 1) << "/"
-        << setw(2) << setfill('0') << (ltm.tm_year % 100) << " "
-        << setw(2) << setfill('0') << ltm.tm_hour << ":"
-        << setw(2) << setfill('0') << ltm.tm_min;
-
-    return ss.str();
-}
-
-static void balanceFluctuations(const string& accountNumber, const string& accountName, double amount, double balance, const string& receiverPhone, const string& receiverName, bool isTransaction) {
-
-}
+//static void balanceFluctuations(const string& accountNumber, const string& accountName, double amount, double balance, const string& receiverPhone, const string& receiverName, bool isTransaction) {
+//
+//}
 
 void ATM::checkBalance() {
     Menu::displayHeader("Check Balance");
@@ -395,10 +407,6 @@ string ATM::inputPhoneNumber() {
     bool firstAttempt = true; // Biến để theo dõi nếu là lần nhập đầu tiên
     do {
         if (!firstAttempt) {
-        if (!firstAttempt) {
-        cout << "Enter your phone number: ";
-        getline(cin, phone);
-        if (!isValidPhoneNumber(phone)) {
             cout << "Invalid phone number format, please try again." << endl;
         }
         cout << "Enter your phone number: ";
@@ -411,11 +419,13 @@ string ATM::inputPhoneNumber() {
             firstAttempt = true; // Để tiếp tục yêu cầu nhập lại
         }
     } while (!isValidPhoneNumber(phone) || isPhoneNumberRegistered(phone));
+
     return phone;
 }
 
+
 // Hàm kiểm tra xem số điện thoại đã được đăng ký hay chưa
-bool ATM::isPhoneNumberRegistered(const string& phone) {
+bool ATM::isPhoneNumberRegistered(const string& phone){
     for (const UserAccount& user : users) {
         if (user.getPhoneNumber() == phone) {
             return true; // Số điện thoại đã được đăng ký
@@ -448,7 +458,7 @@ bool ATM::validatePassword(const string& password) {
     return true;
 }
 
-int ATM::generateOTP() {
+int ATM::generateOTP(){
     srand(time(0));
     return rand() % 900000 + 100000;
 }
@@ -514,4 +524,3 @@ void ATM::saveAllUsersToFile() {
     rename("D:\\OOP_BTL\\Updated OOP\\Updated OOP\\temp_user.txt",
         "D:\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
 }
-

@@ -3,14 +3,19 @@
 #include <iostream>
 #include <ctime>
 #include <cstdlib>
+#include <fstream> 
 using namespace std;
 
 ATM::ATM() : loggedInUser(nullptr) {}
 
 void ATM::run() {
+
+    
+
     int choice;
     do {
         Menu::displayHeader("<<WELCOME TO W3O BANK>>");
+        loadUsersFromFile();  // Load users from file at startup
         Menu::showMenu();
         cin >> choice;
 
@@ -106,6 +111,8 @@ void ATM::registerUser() {
 
     UserAccount newUser(numbers, 0, username, numbers, password, pin);
     users.push_back(newUser);
+    saveUserToFile(newUser);  // Lưu người dùng vào tệp
+
     cout << "User registered successfully!\n";
 }
 
@@ -196,12 +203,16 @@ void ATM::deposit() {
             cout << "Incorrect PIN. Transaction failed, please re-enter!\n";
         }
     } while (!loggedInUser->validateTransactionPIN(pin));
+
+        double amount;
+        cout << "Enter amount to deposit: ";
+        cin >> amount;
+        if (amount < 0) cout << "Sorry, the deposit amount can not be negative, please try again!\n";
+        return;
     
-    double amount;
-    cout << "Enter amount to deposit: ";
-    cin >> amount;
     loggedInUser->deposit(amount);
     cout << "Deposit successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
+    saveAllUsersToFile();
 }
 
 void ATM::withdraw() {
@@ -220,8 +231,12 @@ void ATM::withdraw() {
     double amount;
     cout << "Enter amount to withdraw: ";
     cin >> amount;
+    if (amount < 0) cout << "Sorry, the withdraw amount can not be negative, please try again!\n";
+    return;
+
     if (loggedInUser->withdraw(amount)) {
         cout << "Withdrawal successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
+        saveAllUsersToFile();
     }
     else {
         cout << "Insufficient balance.\n";
@@ -237,6 +252,9 @@ void ATM::transfer() {
     cin >> receiverNumbers;
     cout << "Enter amount to transfer: ";
     cin >> amount;
+    if (amount < 0) cout << "Sorry, the transfer amount can not be negative, please try again!\n";
+    return;
+
     do {
         cout << "Enter your transaction PIN: ";
         cin >> pin;
@@ -279,6 +297,7 @@ void ATM::transfer() {
                         cout << "\033[1;35m";
                         cout << "|================================================================|" << "\n\n";
                         cout << "\033[0m";
+                        saveAllUsersToFile();
                     }
                     else {
                         cout << "Insufficient balance.\n";
@@ -378,4 +397,70 @@ int ATM::generateOTP() {
     return rand() % 900000 + 100000;
 }
 
+void ATM::loadUsersFromFile() {
+    ifstream inFile("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
+    if (!inFile) {
+        cout << "Error opening file!" << endl;
+        return;
+    }
 
+    string phoneNumber, userName, password, pin;
+    double balance;
+
+    while (inFile >> phoneNumber >> balance) {
+        inFile.ignore(); // Bỏ qua ký tự xuống dòng hoặc dấu cách sau balance
+        getline(inFile, userName, '\t'); // Đọc đến ký tự tab hoặc newline nếu định dạng tách nhau bằng tab
+        inFile >> password >> pin;
+
+        UserAccount user(phoneNumber, balance, userName, phoneNumber, password, pin);
+        users.push_back(user);
+    }
+
+    inFile.close();
+
+    //cout << "Loaded users from file:\n";
+    //int index = 1;
+    //for (const auto& user : users) {
+    //    cout << "User " << index++ << ":\n";
+    //    cout << "  Phone: " << user.getPhoneNumber() << "\n"
+    //        << "  Username: " << user.getUserName() << "\n"
+    //        << "  Balance: " << user.getBalance() << "\n";
+    //    cout << "-----------------------------------\n";
+    //}
+}
+
+
+void ATM::saveUserToFile(const UserAccount& user) {
+    ofstream outFile("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt", ios::app);  // Mở tệp ở chế độ thêm
+    if (!outFile) {
+        cout << "Error opening file!" << endl;
+        return;
+    }
+
+    outFile << user.getPhoneNumber() << "\t"
+        << user.getBalance() << "\t"
+        << user.getUserName() << "\t"
+        << user.getPassword() << "\t"
+        << user.getTransactionPIN() << endl;
+
+    outFile.close();
+}
+void ATM::saveAllUsersToFile() {
+    ofstream outFile("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
+    if (!outFile) {
+        cout << "Error opening file!" << endl;
+        return;
+    }
+
+    for (const UserAccount& user : users) {
+        outFile << user.getPhoneNumber() << "\t"
+            << user.getBalance() << "\t"
+            << user.getUserName() << "\t"
+            << user.getPassword() << "\t"
+            << user.getTransactionPIN() << endl;
+    }
+
+    outFile.close();
+
+
+}

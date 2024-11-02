@@ -12,6 +12,12 @@ string UserAccount::getUserName() const {
 string UserAccount::getPhoneNumber() const {
     return phoneNumber;
 }
+string UserAccount::getPassword() const {
+    return password;
+}
+string UserAccount::getTransactionPIN() const {
+    return transactionPIN;
+}
 
 bool UserAccount::validatePassword(const string& pass) const {
     return password == pass;

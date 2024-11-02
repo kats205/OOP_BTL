@@ -20,6 +20,8 @@ public:
 
     string getUserName() const;
     string getPhoneNumber() const;
+    string getPassword() const;
+    string getTransactionPIN() const;
     bool validatePassword(const string& pass) const;
     bool validateTransactionPIN(const string& pin) const;
 };

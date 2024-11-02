@@ -24,5 +24,9 @@ public:
     string inputPhoneNumber();
     bool validatePassword(const string& password);
     int generateOTP();
+
+    void loadUsersFromFile();
+    void saveUserToFile(const UserAccount& user);
+    void saveAllUsersToFile();
 };
 

@@ -1,7 +1,11 @@
 ﻿#include "ATM.h"
 #include "Menu.h"
 #include <iostream>
+#include <iomanip>
 #include <ctime>
+#include <conio.h>
+#include <sstream>
+#include <string>
 #include <cstdlib>
 #include <fstream> 
 using namespace std;
@@ -9,9 +13,6 @@ using namespace std;
 ATM::ATM() : loggedInUser(nullptr) {}
 
 void ATM::run() {
-
-    
-
     int choice;
     do {
         Menu::displayHeader("<<WELCOME TO W3O BANK>>");
@@ -317,10 +318,29 @@ void ATM::transfer() {
                 return;
             }
         }
-        else {
+        if (userInput != otp) {
             cout << "Incorrect OTP code, please try again..." << endl;
         }
     } while (userInput != otp);
+}
+
+static string getCurrentDateTime() {
+    time_t now = time(0); // Lấy thời gian hiện tại
+    tm ltm;
+    localtime_s(&ltm, &now); // Sử dụng localtime_s thay vì localtime
+
+    stringstream ss;
+    ss << setw(2) << setfill('0') << ltm.tm_mday << "/"
+        << setw(2) << setfill('0') << (ltm.tm_mon + 1) << "/"
+        << setw(2) << setfill('0') << (ltm.tm_year % 100) << " "
+        << setw(2) << setfill('0') << ltm.tm_hour << ":"
+        << setw(2) << setfill('0') << ltm.tm_min;
+
+    return ss.str();
+}
+
+static void balanceFluctuations(const string& accountNumber, const string& accountName, double amount, double balance, const string& receiverPhone, const string& receiverName, bool isTransaction) {
+
 }
 
 void ATM::checkBalance() {
@@ -366,7 +386,6 @@ string ATM::inputPhoneNumber() {
     string phone;
     do {
         cout << "Enter your phone number: ";
-        cin.ignore();
         getline(cin, phone);
         if (!isValidPhoneNumber(phone)) {
             cout << "Invalid phone number format, please try again." << endl;
@@ -391,7 +410,7 @@ bool ATM::validatePassword(const string& password) {
     }
 
     if (!hasUpper || !hasDigit || !hasSpecial) {
-        cout << "Password must contain at least 1 uppercase character, number and special character. Please re-enter!\n";
+        cout << "Password must contain at least 1 uppercase character, number and special character. Please try again!\n";
         return false;
     }
 
@@ -404,7 +423,7 @@ int ATM::generateOTP() {
 }
 
 void ATM::loadUsersFromFile() {
-    ifstream inFile("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
+    ifstream inFile("D:\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
     if (!inFile) {
         cout << "Error opening file!" << endl;
         return;
@@ -413,10 +432,11 @@ void ATM::loadUsersFromFile() {
     string phoneNumber, userName, password, pin;
     double balance;
 
-    while (inFile >> phoneNumber >> balance) {
+    while (getline(inFile, phoneNumber, '\t') && inFile >> balance) {
         inFile.ignore(); // Bỏ qua ký tự xuống dòng hoặc dấu cách sau balance
-        getline(inFile, userName, '\t'); // Đọc đến ký tự tab hoặc newline nếu định dạng tách nhau bằng tab
-        inFile >> password >> pin;
+        getline(inFile, userName, '\t');
+        getline(inFile, password, '\t');
+        getline(inFile, pin);
 
         UserAccount user(phoneNumber, balance, userName, phoneNumber, password, pin);
         users.push_back(user);
@@ -437,7 +457,7 @@ void ATM::loadUsersFromFile() {
 
 
 void ATM::saveUserToFile(const UserAccount& user) {
-    ofstream outFile("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt", ios::app);  // Mở tệp ở chế độ thêm
+    ofstream outFile("D:\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt", ios::app);  // Mở tệp ở chế độ thêm
     if (!outFile) {
         cout << "Error opening file!" << endl;
         return;
@@ -452,7 +472,7 @@ void ATM::saveUserToFile(const UserAccount& user) {
     outFile.close();
 }
 void ATM::saveAllUsersToFile() {
-    ofstream outFile("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\temp_user.txt");
+    ofstream outFile("D:\\OOP_BTL\\Updated OOP\\Updated OOP\\temp_user.txt");
     if (!outFile) {
         cout << "Error opening file!" << endl;
         return;
@@ -468,8 +488,8 @@ void ATM::saveAllUsersToFile() {
 
     outFile.close();
     // Rename temp file to the original file
-    remove("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
-    rename("D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\temp_user.txt",
-        "D:\\ITCLASS\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
+    remove("D:\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
+    rename("D:\\OOP_BTL\\Updated OOP\\Updated OOP\\temp_user.txt",
+        "D:\\OOP_BTL\\Updated OOP\\Updated OOP\\user.txt");
 }
 

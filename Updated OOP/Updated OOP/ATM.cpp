@@ -13,13 +13,18 @@ using namespace std;
 ATM::ATM() : loggedInUser(nullptr) {}
 
 void ATM::run() {
+<<<<<<< HEAD
+
+    Menu::displayHeader("<<WELCOME TO W3O BANK>>");
+    loadUsersFromFile();  // Load users from file at startup
+    Menu::showMenu();
+
+=======
+>>>>>>> 047e5987edb392ce88c7d7be362d5027d070f790
     int choice;
     do {
-        Menu::displayHeader("<<WELCOME TO W3O BANK>>");
-        loadUsersFromFile();  // Load users from file at startup
-        Menu::showMenu();
+        
         cin >> choice;
-
         switch (choice) {
         case 1: registerUser(); 
             cout << "Press Enter to continue...";
@@ -34,6 +39,7 @@ void ATM::run() {
         case 3: cout << "Goodbye!" << endl;
             break;
         default: cout << "Invalid choice, try again." << endl;
+            cout << ">> Choose an option: ";
             break;
         }
     } while (choice != 3);
@@ -43,7 +49,7 @@ void ATM::registerUser() {
     Menu::displayHeader("Register");
     string username, password, pin;
     string numbers = inputPhoneNumber();
-    cout << "Your phone number is valid" << endl;
+    cout << "Your phone number is valid\n" << endl;
     cout << "Enter the user name: ";
     //cin.ignore();
     getline(cin, username);
@@ -151,6 +157,10 @@ void ATM::login() {
         if (user.getPhoneNumber() == numbers && user.validatePassword(password)) {
             loggedInUser = &user;
             cout << "Login successful!\n";
+            // Thêm dòng sau ?? d?ng l?i tr??c khi k?t thúc ch??ng trình
+            cout << "Press Enter to login...";
+            cin.ignore();  // B? qua ký t? enter tr??c ?ó (n?u có)
+            cin.get();     // Ch? ng??i dùng nh?n Enter ?? thoát
             system("cls");
             loginAfter();
             return;
@@ -462,15 +472,6 @@ void ATM::loadUsersFromFile() {
 
     inFile.close();
 
-    //cout << "Loaded users from file:\n";
-    //int index = 1;
-    //for (const auto& user : users) {
-    //    cout << "User " << index++ << ":\n";
-    //    cout << "  Phone: " << user.getPhoneNumber() << "\n"
-    //        << "  Username: " << user.getUserName() << "\n"
-    //        << "  Balance: " << user.getBalance() << "\n";
-    //    cout << "-----------------------------------\n";
-    //}
 }
 
 

@@ -1,8 +1,0 @@
-﻿  ATM.cpp
-D:\OOP_BTL\Test Project\BTL ATM\ATM.cpp(25,21): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\OOP_BTL\Test Project\BTL ATM\ATM.cpp(31,22): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\OOP_BTL\Test Project\BTL ATM\ATM.cpp(279,24): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  Main.cpp
-  Generating Code...
-D:\OOP_BTL\Test Project\BTL ATM\ATM.cpp(169,1): warning C4715: 'ATM::isValidPhoneNumber': not all control paths return a value
-  BTL ATM.vcxproj -> D:\OOP_BTL\Test Project\x64\Debug\BTL ATM.exe

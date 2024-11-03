@@ -11,7 +11,15 @@
 #include <fstream> 
 using namespace std;
 
-ATM::ATM() : loggedInUser(nullptr) {}
+ATM::ATM() : loggedInUser(nullptr) {
+    // Tạo file `user.txt` nếu không tồn tại
+    ofstream userFile("user.txt", ios::app);
+    userFile.close(); // Đóng file sau khi mở
+
+    // Tạo file `userHistory.txt` nếu không tồn tại
+    ofstream historyFile("userHistory.txt", ios::app);
+    historyFile.close(); // Đóng file sau khi mở
+}
 
 void ATM::run() {
     loadUsersFromFile();  // Load users from file at startup
@@ -324,7 +332,6 @@ void ATM::transfer() {
     } while (!loggedInUser->validateTransactionPIN(pin));
 
     // Kiểm tra nhập OTP được gửi về máy
-    srand(static_cast<unsigned int>(time(0))); // Khởi tạo số ngẫu nhiên gồm 6 chữ số
     int otp = generateOTP(); // Tạo mã OTP
     cout << "An OTP has been sent to your registered device: " << setw(6) << setfill('0') << otp << endl; // Đảm bảo mã OTP luôn có 6 chữ số
     int userInput;
@@ -588,7 +595,7 @@ bool ATM::validatePassword(const string& password) {
 }
 
 int ATM::generateOTP(){
-    srand(time(0));
+    srand(static_cast<unsigned int>(time(0))); // Khởi tạo số ngẫu nhiên gồm 6 chữ số
     return rand() % 900000 + 100000;
 }
 

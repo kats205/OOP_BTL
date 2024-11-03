@@ -138,6 +138,7 @@
     <ClInclude Include="Account.h" />
     <ClInclude Include="ATM.h" />
     <ClInclude Include="Menu.h" />
+    <ClInclude Include="Transaction.h" />
     <ClInclude Include="UserAccount.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

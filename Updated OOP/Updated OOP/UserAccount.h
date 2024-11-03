@@ -1,10 +1,9 @@
-#pragma once
+﻿#pragma once
 #include "Account.h"
+#include "Transaction.h"
+#include <vector>
 #include <string>
-#include <ctime>   // cho time()
-#include <iomanip> // cho setw v� setfill
-#include <conio.h>
-#include <cctype>
+
 using namespace std;
 
 class UserAccount : public Account {
@@ -13,6 +12,7 @@ private:
     string phoneNumber;
     string password;
     string transactionPIN;
+    vector<Transaction> transactions;
 
 public:
     UserAccount(const string& accNum, double initialBalance, const string& username,
@@ -22,6 +22,10 @@ public:
     string getPhoneNumber() const;
     string getPassword() const;
     string getTransactionPIN() const;
+
     bool validatePassword(const string& pass) const;
     bool validateTransactionPIN(const string& pin) const;
+
+    void addTransaction(const Transaction& txn);               // Thêm phương thức này
+    const vector<Transaction>& getTransactions() const;  // Thêm phương thức này
 };

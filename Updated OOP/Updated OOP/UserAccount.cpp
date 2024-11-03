@@ -1,4 +1,4 @@
-#include "UserAccount.h"
+﻿#include "UserAccount.h"
 
 UserAccount::UserAccount(const string& accNum, double initialBalance, const string& username,
     const string& phone, const string& pass, const string& pin)
@@ -27,3 +27,12 @@ bool UserAccount::validateTransactionPIN(const string& pin) const {
     return transactionPIN == pin;
 }
 
+// Implement phương thức thêm giao dịch
+void UserAccount::addTransaction(const Transaction& txn) {
+    transactions.push_back(txn);
+}
+
+// Implement phương thức lấy lịch sử giao dịch
+const vector<Transaction>& UserAccount::getTransactions() const {
+    return transactions;
+}

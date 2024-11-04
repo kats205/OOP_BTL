@@ -2,13 +2,8 @@
 #include "Menu.h"
 #include "Transaction.h"
 #include <iostream>
-#include <iomanip>
-#include <ctime>
-#include <conio.h>
-#include <sstream>
-#include <string>
-#include <cstdlib>
-#include <fstream> 
+ 
+
 using namespace std;
 
 ATM::ATM() : loggedInUser(nullptr) {
@@ -52,6 +47,7 @@ void ATM::registerUser() {
     Menu::displayHeader("Register");
     string username, password, pin;
     string numbers = inputPhoneNumber();
+    if (numbers == "N/A") return;
     cout << "Your phone number is valid\n" << endl;
     cout << "Enter the user name: ";
     //cin.ignore();
@@ -349,19 +345,19 @@ void ATM::transfer() {
                     if (loggedInUser->withdraw(amount)) {
                         user.deposit(amount);
                         cout << "\033[1;35m";
-                        cout << "\n|================================================================|" << "\n";
-                        cout << "\033[1;37m" << "    Transfer to " << user.getUserName() << " successful! -" << amount << " VND\n";
+                        cout << "\n|=======================================================================================================================================|" << "\n";
+                        cout << "\033[1;37m" << "                                      Transfer to " << user.getUserName() << " successful! -" << amount << " VND\n";
                         cout << "\033[1;35m";
-                        cout << "|----------------------------------------------------------------|" << "\n";
-                        cout << "    >>[Receiver]:        " << "\033[1;37m" << user.getPhoneNumber() << "\n";
+                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                        cout << "                                               >>[Receiver]:      " << "\033[1;37m" << user.getPhoneNumber() << "\n";
                         cout << "\033[1;35m";
-                        cout << "|----------------------------------------------------------------|" << "\n";
-                        cout << "    >>[Recipient Name]: " << "\033[1;37m" << user.getUserName() << "\n";
+                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                        cout << "                                               >>[Recipient Name]:      " << "\033[1;37m" << user.getUserName() << "\n";
                         cout << "\033[1;35m";
-                        cout << "|----------------------------------------------------------------|" << "\n";
-                        cout << "    >>[Amount]:          " << "\033[1;37m" << loggedInUser->getBalance() << " VND\n";
+                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                        cout << "                                               >>[Amount]:       " << "\033[1;37m" << loggedInUser->getBalance() << " VND\n";
                         cout << "\033[1;35m";
-                        cout << "|================================================================|" << "\n\n";
+                        cout << "|=======================================================================================================================================|" << "\n\n";
                         cout << "\033[0m";
 
                         // Tạo giao dịch gửi tiền
@@ -408,6 +404,13 @@ void ATM::transfer() {
     } while (userInput != otp);
 }
 
+void gotoxy(int x, int y) {
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
 
 void ATM::transactionHistory() {
     if (loggedInUser == nullptr) {
@@ -426,11 +429,14 @@ void ATM::transactionHistory() {
 
     Menu::displayHeader("Transaction History");
 
-    cout << "\033[1;36m";
-    cout << "|-------------------------------------------------------------------------------------------------|\n";
-    cout << "| Date & Time\t\tType\t\tAmount\t\tBalance After\t\tDetails |\n";
-    cout << "|-------------------------------------------------------------------------------------------------|\n";
+    cout << "\033[1;37m";
+    cout << "\n+=======================================================================================================================================+\n";
+    cout << "|" << "\033[1;33m" << "888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888"<< "\033[1;37m" <<"|\n";
+    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
+    cout << "| Date & Time\t\tType\t\t\tAmount\t\t\tBalance After\t\tDetails                                 |\n";
+    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|";
 
+    int y = 11;
     while (getline(inFile, line)) {
         istringstream iss(line);
         string phoneNumber, userName, dateTime, type, details;
@@ -444,20 +450,45 @@ void ATM::transactionHistory() {
         iss >> amount >> balanceAfter;
         iss.ignore(); // Bỏ qua tab hoặc khoảng trắng sau balanceAfter
         getline(iss, details); // Lấy phần còn lại của dòng làm chi tiết
-
+        
         // Kiểm tra nếu số điện thoại trùng với người dùng hiện tại
         if (phoneNumber == loggedInUser->getPhoneNumber()) {
-            hasTransaction = true;
+      /*      hasTransaction = true;
             cout << "| " << dateTime << "\t" << type << "\t\t" << amount << "\t\t"
-                << balanceAfter << "\t\t" << details << " |\n";
+                << balanceAfter << "\t\t" << details << " |\n";*/
+           hasTransaction = true;
+            gotoxy(0, y);
+            cout << "|";
+            gotoxy(2, y); // X đặt một vị trí phù hợp để căn chỉnh
+            cout << dateTime;
+            gotoxy(24, y); // Thay đổi X để đặt vị trí cho 'Type'
+            cout << type;
+            gotoxy(48, y); // Thay đổi X để đặt vị trí cho 'Amount'
+            cout << amount;
+            gotoxy(72, y); // Thay đổi X để đặt vị trí cho 'Balance After'
+            cout << balanceAfter;
+            gotoxy(96, y); // Thay đổi X để đặt vị trí cho 'Details'
+            cout << details;
+            gotoxy(136, y);
+            cout << "|"<<endl;
+            cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
+
+            y=y+2; // Di chuyển xuống hàng tiếp theo */
         }
     }
-
+    int y2 = 11;
     if (!hasTransaction) {
-        cout << "No transactions found for your account.\n";
+        gotoxy(0, y2);
+        cout << "|";
+        gotoxy(2, y2); // X đặt một vị trí phù hợp để căn chỉnh
+        cout << "No transactions found for your account";
+        gotoxy(136, y2);
+        cout << "|" << endl;
+        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
     }
 
-    cout << "|-------------------------------------------------------------------------------------------------|\n";
+    cout << "|"<<"\033[1;33m"<<"888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888" << "\033[1;37m" << "|\n";
+    cout << "+=======================================================================================================================================+\n";
     cout << "\033[0m";
     inFile.close();
 }
@@ -465,16 +496,16 @@ void ATM::transactionHistory() {
 void ATM::checkBalance() {
     Menu::displayHeader("Check Balance");
     cout << "\033[1;35m";
-    cout << "\n|================================================================|" << "\n";
-    cout << "    >>[Account]:         " << "\033[1;37m" << loggedInUser->getPhoneNumber() << "\n";
+    cout << "\n|=======================================================================================================================================|" << "\n";
+    cout << "                                        >>[Account]:         " << "\033[1;37m" << loggedInUser->getPhoneNumber() << "\n";
     cout << "\033[1;35m";
-    cout << "|----------------------------------------------------------------|" << "\n";
-    cout << "    >>[User Name]:         " << "\033[1;37m" << loggedInUser->getUserName() << "\n";
+    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+    cout << "                                        >>[User Name]:         " << "\033[1;37m" << loggedInUser->getUserName() << "\n";
     cout << "\033[1;35m";
-    cout << "|----------------------------------------------------------------|" << "\n";
-    cout << "    >>[Your balance is]:         " << "\033[1;37m" << loggedInUser->getBalance() << "VND\n";
+    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+    cout << "                                        >>[Your balance is]:         " << "\033[1;37m" << loggedInUser->getBalance() << "VND\n";
     cout << "\033[1;35m";
-    cout << "|================================================================|" << "\n\n";
+    cout << "|=======================================================================================================================================|" << "\n\n";
     cout << "\033[0m";
 }
 
@@ -528,7 +559,12 @@ string ATM::inputPhoneNumber() {
         // Kiểm tra xem số điện thoại đã được đăng ký chưa
         if (isPhoneNumberRegistered(phone)) {
             cout << "This phone number has already been registered. Please try a different one." << endl;
+            cout << "Do you want to login or continue register? (Y/N)\n";
+            char YN;
+            cin >> YN;
+            if (YN == 'Y' || YN == 'y') return "N/A";
             firstAttempt = true; // Để tiếp tục yêu cầu nhập lại
+            cin.ignore();
         }
     } while (!isValidPhoneNumber(phone) || isPhoneNumberRegistered(phone));
 

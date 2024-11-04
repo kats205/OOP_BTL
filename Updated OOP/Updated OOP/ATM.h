@@ -1,7 +1,14 @@
 ﻿#pragma once
 #include "UserAccount.h"
 #include <vector>
-
+#include <windows.h>
+#include <iomanip>
+#include <ctime>
+#include <conio.h>
+#include <sstream>
+#include <string>
+#include <cstdlib>
+#include <fstream>
 using namespace std;
 
 class ATM {
@@ -16,6 +23,7 @@ public:
     void loginAfter();
     void logout();
     void registerUser();
+
     void deposit();
     void withdraw();
     void transfer();
@@ -38,4 +46,6 @@ public:
     void saveUserToFile(const UserAccount& user);
     void saveAllUsersToFile();
 };
+
+void gotoxy(int x, int y); //khai báo hàm này ngoài lớp, để không lầm tưởng đó là phương thức của lớp
 

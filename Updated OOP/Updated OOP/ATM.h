@@ -38,6 +38,7 @@ public:
     bool isValidPhoneNumber(const string& phone);
     bool isPhoneNumberRegistered(const string& phone);
     bool validatePassword(const string& password);
+    bool validateAmount(const string& amount);
 
     int generateOTP();
 

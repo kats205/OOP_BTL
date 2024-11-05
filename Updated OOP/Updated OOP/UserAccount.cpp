@@ -19,11 +19,11 @@ string UserAccount::getTransactionPIN() const {
     return transactionPIN;
 }
 
-bool UserAccount::validatePassword(const string& pass) const {
+bool UserAccount::getPassword(const string& pass) const {
     return password == pass;
 }
 
-bool UserAccount::validateTransactionPIN(const string& pin) const {
+bool UserAccount::getTransactionPIN(const string& pin) const {
     return transactionPIN == pin;
 }
 

@@ -153,7 +153,7 @@ void ATM::login() {
     cout << endl; // Xuống dòng
 
     for (UserAccount& user : users) {
-        if (user.getPhoneNumber() == numbers && user.validatePassword(password)) {
+        if (user.getPhoneNumber() == numbers && user.getPassword(password)) {
             loggedInUser = &user;
             cout << "Login successful!\n";
             // Thêm dòng sau ?? d?ng l?i tr??c khi k?t thúc ch??ng trình
@@ -227,10 +227,10 @@ void ATM::deposit() {
         cout << "Enter your transaction PIN: ";
         cin >> pin;
 
-        if (!loggedInUser->validateTransactionPIN(pin)) {
+        if (!loggedInUser->getTransactionPIN(pin)) {
             cout << "Incorrect PIN. Transaction failed, please try again!\n";
         }
-    } while (!loggedInUser->validateTransactionPIN(pin));
+    } while (!loggedInUser->getTransactionPIN(pin));
 
     double amount;
     cout << "Enter amount to deposit: ";
@@ -267,10 +267,10 @@ void ATM::withdraw() {
         cout << "Enter your transaction PIN: ";
         cin >> pin;
 
-        if (!loggedInUser->validateTransactionPIN(pin)) {
+        if (!loggedInUser->getTransactionPIN(pin)) {
             cout << "Incorrect PIN. Transaction failed, please try again!\n";
         }
-    } while (!loggedInUser->validateTransactionPIN(pin));
+    } while (!loggedInUser->getTransactionPIN(pin));
 
     double amount;
     cout << "Enter amount to withdraw: ";
@@ -322,10 +322,10 @@ void ATM::transfer() {
         cout << "Enter your transaction PIN: ";
         cin >> pin;
 
-        if (!loggedInUser->validateTransactionPIN(pin)) {
+        if (!loggedInUser->getTransactionPIN(pin)) {
             cout << "Incorrect PIN. Transaction failed, please re-enter!\n";
         }
-    } while (!loggedInUser->validateTransactionPIN(pin));
+    } while (!loggedInUser->getTransactionPIN(pin));
 
     // Kiểm tra nhập OTP được gửi về máy
     int otp = generateOTP(); // Tạo mã OTP

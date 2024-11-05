@@ -25,6 +25,8 @@ void Menu::displayHeader(const string& title) {
     cout << "\033[0m";  // Reset lại màu sắc
 }
 
+
+
 void Menu::showMenu() {
     cout << "\033[1;34m"; // Màu xanh dương sáng cho tiêu đề
 

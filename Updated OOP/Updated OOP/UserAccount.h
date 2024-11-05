@@ -23,8 +23,8 @@ public:
     string getPassword() const;
     string getTransactionPIN() const;
 
-    bool validatePassword(const string& pass) const;
-    bool validateTransactionPIN(const string& pin) const;
+    bool getPassword(const string& pass) const;
+    bool getTransactionPIN(const string& pin) const;
 
     void addTransaction(const Transaction& txn);               // Thêm phương thức này
     const vector<Transaction>& getTransactions() const;  // Thêm phương thức này

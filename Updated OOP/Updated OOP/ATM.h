@@ -27,18 +27,17 @@ public:
     void deposit();
     void withdraw();
     void transfer();
-    void transactionHistory(); // Thêm hàm 
+    void transactionHistory(); 
     void checkBalance();
 
     static string getCurrentDateTime();
-    // Thêm hàm balanceFluctuation
     void balanceFluctuation(const UserAccount& user, const Transaction& txn);
 
-    string inputPhoneNumber();
-    bool isValidPhoneNumber(const string& phone);
     bool isPhoneNumberRegistered(const string& phone);
+    string inputPhoneNumber();
+    bool validatePhoneNumber(const string& phone);
     bool validatePassword(const string& password);
-    bool validateAmount(const string& amount);
+    bool validateAmount(double amount, const string& transactionType);
 
     int generateOTP();
 
@@ -48,5 +47,5 @@ public:
     void saveAllUsersToFile();
 };
 
-void gotoxy(int x, int y); //khai báo hàm này ngoài lớp, để không lầm tưởng đó là phương thức của lớp
+void gotoxy(int x, int y); // Ko phải phương thức của lớp
 

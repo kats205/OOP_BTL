@@ -236,7 +236,7 @@ void ATM::deposit() {
         cin >> amount;
         if (!validateAmount(amount, transactionType))
             return;
-    } while (validateAmount(amount, transactionType));
+    } while (!validateAmount(amount, transactionType)); //Dieu kien de lap lai viec nhap la khi nhap sai
 
     loggedInUser->deposit(amount);
     cout << "Deposit successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
@@ -274,7 +274,7 @@ void ATM::withdraw() {
         cin >> amount;
         if (!validateAmount(amount, transactionType))
             return;
-    } while (validateAmount(amount, transactionType));
+    } while (!validateAmount(amount, transactionType));
 
     if (loggedInUser->withdraw(amount)) {
         cout << "Withdrawal successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
@@ -311,7 +311,7 @@ void ATM::transfer() {
         cin >> amount;
         if (!validateAmount(amount, transactionType))
             return;
-    } while (validateAmount(amount, transactionType));
+    } while (!validateAmount(amount, transactionType));
 
     do {
         cout << "Enter your transaction PIN: ";

@@ -53,3 +53,4 @@ public:
 
 //hàm ngoài hõ trợ cho việc thiết lập giao diện
 void gotoxy(int x, int y); // Ko phải phương thức của lớp
+

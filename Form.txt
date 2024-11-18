@@ -1,0 +1,1007 @@
+Hiện tại tôi đang có 1 dự án về quản lý ATM gồm 10 file là main.cpp (chạy chương trình), ATM.cpp (quản lý chính), ATM.h, Account.cpp (lớp cơ sở), Account.h, UserAccount.cpp (lớp kế thừa từ lớp cơ sở), UserAccount.h, Menu.cpp (giao diện chương trình), Menu.h, Transaction.h (danh sách lịch sử giao dịch) như sau:
+
+*file main.cpp:
+#include "ATM.h"
+#include <iostream>
+
+
+using namespace std;
+
+int main() {
+    ATM atm;
+    atm.run();
+    cout << "Press Enter to exit...";
+    cin.ignore();  
+    cin.get();    
+    return 0;
+
+}
+
+*file ATM.cpp:
+#include "ATM.h"
+#include "Menu.h"
+#include "Transaction.h"
+#include <iostream>
+
+using namespace std;
+
+ATM::ATM() : loggedInUser(nullptr) {
+    // Tạo file `user.txt` nếu không tồn tại
+    ofstream userFile("user.txt", ios::app);
+    userFile.close(); // Đóng file sau khi mở
+
+    // Tạo file `userHistory.txt` nếu không tồn tại
+    ofstream historyFile("userHistory.txt", ios::app);
+    historyFile.close(); // Đóng file sau khi mở
+}
+
+void ATM::run() {
+    loadUsersFromFile();  // Load users from file at startup
+    int choice;
+    do {
+        Menu::displayHeader("<<WELCOME TO W3O BANK>>");
+        Menu::showMenu();
+        cin >> choice;
+        switch (choice) {
+        case 1: registerUser();
+            cout << "Press Enter to continue...";
+            cin.ignore();
+            cin.get();
+            break;
+        case 2: login();
+            cout << "Press Enter to continue...";
+            cin.ignore();
+            cin.get();
+            break;
+        case 3: cout << "Goodbye!" << endl;
+            break;
+        default: cout << "Invalid choice, try again." << endl;
+            cout << ">> Choose an option: ";
+            break;
+        }
+    } while (choice != 3);
+}
+
+void ATM::enterPassword(string& password)
+{
+    bool showPassword = false;
+    char ch;
+
+    cout << "Enter password (Press '/' to toggle visibility): ";
+
+    while ((ch = _getch()) != 13) {  // Nhấn Enter để kết thúc nhập
+        if (ch == 8) { // Nhấn Backspace để xóa ký tự
+            if (!password.empty()) {
+                password.pop_back();
+                cout << "\b \b"; // Xóa dấu * trên màn hình
+            }
+        }
+        else if (ch == 127) { // Nhấn Delete để xóa ký tự tiếp theo
+            if (!password.empty()) {
+                cout << "\b \b"; // Xóa dấu * trên màn hình
+                password.pop_back();
+            }
+        }
+        else if (ch == '/') { // Nhấn '/' để toggle hiển thị mật khẩu
+            showPassword = !showPassword; // Chuyển đổi chế độ hiển thị
+
+            // Xóa dòng hiện tại để hiển thị lại mật khẩu với chế độ mới
+            cout << string(100, '\r');  // Xóa dòng hiện tại
+            cout << "Enter password (Press '/' to toggle visibility): "; //in ghi đè vào câu thông báo trước đó
+
+            for (char p : password) { //in lại mật khẩu theo chế độ hiển thị đang chọn
+                cout << (showPassword ? p : '*'); // Hiển thị mật khẩu hoặc dấu *
+            }
+        }
+        else {
+            password.push_back(ch);
+            if (!showPassword) {
+                cout << '*'; // Hiển thị dấu *
+            }
+            else {
+                cout << ch; // Hiển thị ký tự thật
+            }
+        }
+    }
+    cout << endl; // Xuống dòng sau khi nhập xong
+}
+
+void ATM::registerUser() {
+    Menu::displayHeader("Register");
+    string username, password, pin;
+    string numbers = inputPhoneNumber();
+    if (numbers == "N/A") return;
+    cout << "Your phone number is valid\n" << endl;
+    cout << "Enter the user name: ";
+    //cin.ignore();
+    getline(cin, username);
+    cout << endl;
+    // Nhập mật khẩu với kiểm tra
+    do {
+        password.clear(); // Xóa mật khẩu để nhập lại nếu không hợp lệ
+        enterPassword(password); //gọi hàm nhập để nhập pass
+        // Kiểm tra mật khẩu sau khi nhập xong
+    } while (!validatePassword(password));
+
+    // Nếu đã nhập mật khẩu hợp lệ
+    cout << "Password is valid. Password entered successfully!\n";
+
+    cout << endl; // Xuống dòng
+
+    int lent;
+    do {
+        cout << "Set your transaction PIN(6 digits): ";
+        cin >> pin;
+        lent = pin.size();
+        if (lent != 6) cout << "Your pin just have 6 digits!\n";
+    } while (lent != 6);
+
+    cout << endl;
+
+    UserAccount newUser(numbers, 0, username, numbers, password, pin);
+    users.push_back(newUser);
+    saveUserToFile(newUser);  // Lưu người dùng vào tệp
+
+    cout << "User registered successfully!\n";
+}
+
+void ATM::login() {
+    Menu::displayHeader("Login");
+
+    string numbers, password;
+
+    cout << "Enter your account's number: ";
+    cin >> numbers;
+
+    //Nhập mật khẩu tài khoản
+    enterPassword(password);
+   
+    cout << endl; // Xuống dòng
+
+    for (UserAccount& user : users) {
+        if (user.getPhoneNumber() == numbers && user.getPassword(password)) {
+            loggedInUser = &user;
+            cout << "Login successful!\n";
+            // Thêm dòng thông báo trước khi dừng lại hoàn thành thao tác log
+            cout << "Press Enter to login...";
+            cin.ignore();  // Bbỏ qua enter nếu có trước đó
+            cin.get();     // Cho phép người dùng nhấn enter để hoàn thành
+            system("cls");
+            loginAfter();
+            return;
+        }
+    }
+    cout << "Invalid phone numbers or password.\n";
+}
+
+void ATM::loginAfter() {
+    int choice;
+    do {
+        Menu::displayHeader("User Login Account");
+        Menu::showMenuLoginAfter();
+        cin >> choice;
+
+        switch (choice) {
+        case 1: deposit();
+            cout << "Press Enter to return to menu...";
+            cin.ignore();
+            cin.get();
+            break;
+        case 2: withdraw();
+            cout << "Press Enter to return to menu...";
+            cin.ignore();
+            cin.get();
+            break;
+        case 3: transfer();
+            cout << "Press Enter to return to menu...";
+            cin.ignore();
+            cin.get();
+            break;
+        case 4: checkBalance();
+            cout << "Press Enter to return to menu...";
+            cin.ignore();
+            cin.get();
+            break;
+        case 5: transactionHistory(); // Thêm tùy chọn này
+            cout << "\nPress Enter to return to menu...";
+            cin.ignore();
+            cin.get();
+            break;
+        case 6: logout();
+            break;
+        default: cout << "Invalid choice, try again." << endl; break;
+        }
+
+    } while (choice != 6);
+}
+
+
+void ATM::logout() {
+    Menu::displayHeader("Logout");
+    if (loggedInUser == nullptr) {
+        cout << "You are not logged in.\n";
+        return;
+    }
+    loggedInUser = nullptr;
+    cout << "Logged out successfully.\n";
+}
+
+void ATM::deposit() {
+    Menu::displayHeader("Deposit");
+    string transactionType = "Deposit";
+    string pin;
+    do {
+        cout << "Enter your transaction PIN: ";
+        cin >> pin;
+        if (!loggedInUser->getTransactionPIN(pin)) {
+            cout << "Incorrect PIN. Transaction failed, please try again!\n";
+        }
+    } while (!loggedInUser->getTransactionPIN(pin));
+
+    double amount;
+    do {
+        cout << "Enter amount to deposit: ";
+        cin >> amount;
+        if (!validateAmount(amount, transactionType))
+            return;
+    } while (!validateAmount(amount, transactionType)); //Dieu kien de lap lai viec nhap la khi nhap sai
+
+    loggedInUser->deposit(amount);
+    cout << "Deposit successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
+
+    // Tạo giao dịch và thêm vào lịch sử
+    Transaction txn;
+    txn.dateTime = getCurrentDateTime();
+    txn.type = "Deposit";
+    txn.amount = amount;
+    txn.balanceAfter = loggedInUser->getBalance();
+    txn.details = "N/A";
+    loggedInUser->addTransaction(txn);
+
+    // Ghi giao dịch vào file lịch sử
+    balanceFluctuation(*loggedInUser, txn);
+
+    saveAllUsersToFile();
+}
+
+void ATM::withdraw() {
+    Menu::displayHeader("Withdraw");
+    string transactionType = "Withdraw";
+    string pin;
+    do {
+        cout << "Enter your transaction PIN: ";
+        cin >> pin;
+        if (!loggedInUser->getTransactionPIN(pin)) {
+            cout << "Incorrect PIN. Transaction failed, please try again!\n";
+        }
+    } while (!loggedInUser->getTransactionPIN(pin));
+
+    double amount;
+    do {
+        cout << "Enter amount to withdraw: ";
+        cin >> amount;
+        if (!validateAmount(amount, transactionType))
+            return;
+    } while (!validateAmount(amount, transactionType));
+
+    if (loggedInUser->withdraw(amount)) {
+        cout << "Withdrawal successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
+
+        // Tạo giao dịch và thêm vào lịch sử
+        Transaction txn;
+        txn.dateTime = getCurrentDateTime();
+        txn.type = "Withdraw";
+        txn.amount = amount;
+        txn.balanceAfter = loggedInUser->getBalance();
+        txn.details = "N/A";
+        loggedInUser->addTransaction(txn);
+
+        // Ghi giao dịch vào file lịch sử
+        balanceFluctuation(*loggedInUser, txn);
+
+        saveAllUsersToFile();
+    }
+    else {
+        cout << "Insufficient balance.\n";
+    }
+}
+
+void ATM::transfer() {
+    Menu::displayHeader("Transfer");
+    string transactionType = "Transfer";
+    string receiverNumbers, pin;
+    double amount;
+
+    cout << "Enter recipient's phone number: ";
+    cin >> receiverNumbers;
+    do {
+        cout << "Enter amount to transfer: ";
+        cin >> amount;
+        if (!validateAmount(amount, transactionType))
+            return;
+    } while (!validateAmount(amount, transactionType));
+
+    do {
+        cout << "Enter your transaction PIN: ";
+        cin >> pin;
+
+        if (!loggedInUser->getTransactionPIN(pin)) {
+            cout << "Incorrect PIN. Transaction failed, please try again!\n";
+        }
+    } while (!loggedInUser->getTransactionPIN(pin));
+
+    // Kiểm tra nhập OTP được gửi về máy
+    int otp = generateOTP(); // Tạo mã OTP
+    cout << "An OTP has been sent to your registered device: " << setw(6) << setfill('0') << otp << endl; // Đảm bảo mã OTP luôn có 6 chữ số
+    int userInput;
+    do {
+        cout << "Enter OTP code to confirm money transfer: ";
+        cin >> userInput;
+        if (userInput == otp) {
+            // Kiểm tra người nhận có tồn tại hay không
+            bool recipientFound = false;
+            for (UserAccount& user : users) {
+                if (user.getPhoneNumber() == receiverNumbers) {
+                    recipientFound = true;
+
+                    // Kiểm tra nếu người gửi có đủ tiền để chuyển
+                    if (loggedInUser->withdraw(amount)) {
+                        user.deposit(amount);
+                        cout << "\033[1;35m";
+                        cout << "\n|=======================================================================================================================================|" << "\n";
+                        cout << "\033[1;37m" << "                                      Transfer to " << user.getUserName() << " successful! -" << amount << " VND\n";
+                        cout << "\033[1;35m";
+                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                        cout << "                                               >>[Receiver]:      " << "\033[1;37m" << user.getPhoneNumber() << "\n";
+                        cout << "\033[1;35m";
+                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                        cout << "                                               >>[Recipient Name]:      " << "\033[1;37m" << user.getUserName() << "\n";
+                        cout << "\033[1;35m";
+                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                        cout << "                                               >>[Amount]:       " << "\033[1;37m" << loggedInUser->getBalance() << " VND\n";
+                        cout << "\033[1;35m";
+                        cout << "|=======================================================================================================================================|" << "\n\n";
+                        cout << "\033[0m";
+
+                        // Tạo giao dịch gửi tiền
+                        Transaction txnSent;
+                        txnSent.dateTime = getCurrentDateTime();
+                        txnSent.type = "Transfer Sent";
+                        txnSent.amount = amount;
+                        txnSent.balanceAfter = loggedInUser->getBalance();
+                        txnSent.details = "To: " + user.getPhoneNumber() + " (" + user.getUserName() + ")";
+                        loggedInUser->addTransaction(txnSent);
+
+                        // Ghi giao dịch gửi tiền vào file lịch sử
+                        balanceFluctuation(*loggedInUser, txnSent);
+
+                        // Tạo giao dịch nhận tiền cho người nhận
+                        Transaction txnReceived;
+                        txnReceived.dateTime = getCurrentDateTime();
+                        txnReceived.type = "Transfer Received";
+                        txnReceived.amount = amount;
+                        txnReceived.balanceAfter = user.getBalance();
+                        txnReceived.details = "From: " + loggedInUser->getPhoneNumber() + " (" + loggedInUser->getUserName() + ")";
+                        user.addTransaction(txnReceived);
+
+                        // Ghi giao dịch nhận tiền vào file lịch sử
+                        balanceFluctuation(user, txnReceived);
+
+                        saveAllUsersToFile();
+                    }
+                    else {
+                        cout << "Insufficient balance.\n";
+                    }
+                    return;
+                }
+            }
+            // Nếu không tìm thấy người nhận
+            if (!recipientFound) {
+                cout << "Recipient not found.\n";
+                return;
+            }
+        }
+        if (userInput != otp) {
+            cout << "Incorrect OTP code, please try again..." << endl;
+        }
+    } while (userInput != otp);
+}
+
+void ATM::transactionHistory() {
+    if (loggedInUser == nullptr) {
+        cout << "You need to log in first to view the transaction history.\n";
+        return;
+    }
+
+    ifstream inFile("userHistory.txt");
+    if (!inFile) {
+        cout << "Error opening userHistory.txt!" << endl;
+        return;
+    }
+
+    string line;
+    bool hasTransaction = false;
+
+    Menu::displayHeader("Transaction History");
+
+    cout << "\033[1;37m";
+    cout << "\n+=======================================================================================================================================+\n";
+    cout << "|" << "\033[1;33m" << "888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888" << "\033[1;37m" << "|\n";
+    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
+    cout << "| Date & Time\t\tType\t\t\tAmount\t\t\tBalance After\t\tDetails                                 |\n";
+    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|";
+
+    int y = 11;
+    while (getline(inFile, line)) {
+        istringstream iss(line);
+        string phoneNumber, userName, dateTime, type, details;
+        double amount, balanceAfter;
+
+        // Tách các trường bằng istringstream
+        getline(iss, phoneNumber, '\t');
+        getline(iss, userName, '\t');
+        getline(iss, dateTime, '\t');
+        getline(iss, type, '\t');
+        iss >> amount >> balanceAfter;
+        iss.ignore(); // Bỏ qua tab hoặc khoảng trắng sau balanceAfter
+        getline(iss, details); // Lấy phần còn lại của dòng làm chi tiết
+
+        // Kiểm tra nếu số điện thoại trùng với người dùng hiện tại
+        if (phoneNumber == loggedInUser->getPhoneNumber()) {
+            /*      hasTransaction = true;
+                  cout << "| " << dateTime << "\t" << type << "\t\t" << amount << "\t\t"
+                      << balanceAfter << "\t\t" << details << " |\n";*/
+            hasTransaction = true;
+            gotoxy(0, y);
+            cout << "|";
+            gotoxy(2, y); // X đặt một vị trí phù hợp để căn chỉnh
+            cout << dateTime;
+            gotoxy(24, y); // Thay đổi X để đặt vị trí cho 'Type'
+            cout << type;
+            gotoxy(48, y); // Thay đổi X để đặt vị trí cho 'Amount'
+            cout << amount;
+            gotoxy(72, y); // Thay đổi X để đặt vị trí cho 'Balance After'
+            cout << balanceAfter;
+            gotoxy(96, y); // Thay đổi X để đặt vị trí cho 'Details'
+            cout << details;
+            gotoxy(136, y);
+            cout << "|" << endl;
+            cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
+
+            y = y + 2; // Di chuyển xuống hàng tiếp theo */
+        }
+    }
+    int y2 = 11;
+    if (!hasTransaction) {
+        gotoxy(0, y2);
+        cout << "|";
+        gotoxy(2, y2); // X đặt một vị trí phù hợp để căn chỉnh
+        cout << "No transactions found for your account";
+        gotoxy(136, y2);
+        cout << "|" << endl;
+        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
+    }
+
+    cout << "|" << "\033[1;33m" << "888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888" << "\033[1;37m" << "|\n";
+    cout << "+=======================================================================================================================================+\n";
+    cout << "\033[0m";
+    inFile.close();
+}
+
+void ATM::checkBalance() {
+    Menu::displayHeader("Check Balance");
+    cout << "\033[1;35m";
+    cout << "\n|=======================================================================================================================================|" << "\n";
+    cout << "                                        >>[Account]:         " << "\033[1;37m" << loggedInUser->getPhoneNumber() << "\n";
+    cout << "\033[1;35m";
+    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+    cout << "                                        >>[User Name]:         " << "\033[1;37m" << loggedInUser->getUserName() << "\n";
+    cout << "\033[1;35m";
+    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+    cout << "                                        >>[Your balance is]:         " << "\033[1;37m" << loggedInUser->getBalance() << "VND\n";
+    cout << "\033[1;35m";
+    cout << "|=======================================================================================================================================|" << "\n\n";
+    cout << "\033[0m";
+}
+
+string ATM::getCurrentDateTime() {
+    time_t now = time(0); // Lấy thời gian hiện tại
+    tm ltm;
+    localtime_s(&ltm, &now); // Sử dụng localtime_s thay vì localtime
+
+    stringstream ss;
+    ss << setw(2) << setfill('0') << ltm.tm_mday << "/"
+        << setw(2) << setfill('0') << (ltm.tm_mon + 1) << "/"
+        << setw(2) << setfill('0') << (ltm.tm_year % 100) << " "
+        << setw(2) << setfill('0') << ltm.tm_hour << ":"
+        << setw(2) << setfill('0') << ltm.tm_min << ":"
+        << setw(2) << setfill('0') << ltm.tm_sec;
+
+    return ss.str();
+}
+
+void ATM::balanceFluctuation(const UserAccount& user, const Transaction& txn) {
+    ofstream outFile("userHistory.txt", ios::app);
+    if (!outFile) {
+        cout << "Error opening userHistory.txt for writing!" << endl;
+        return;
+    }
+
+    // Ghi thông tin giao dịch với định dạng: Số điện thoại, Tên người dùng, Thời gian, Loại giao dịch, Số tiền, Số dư sau giao dịch, Chi tiết
+    outFile << user.getPhoneNumber() << "\t"
+        << user.getUserName() << "\t"
+        << txn.dateTime << "\t"
+        << txn.type << "\t"
+        << txn.amount << "\t"
+        << txn.balanceAfter << "\t"
+        << txn.details << "\n";
+
+    outFile.close();
+}
+
+// Hàm kiểm tra xem số điện thoại đã được đăng ký hay chưa
+bool ATM::isPhoneNumberRegistered(const string& phone) {
+    for (const UserAccount& user : users) {
+        if (user.getPhoneNumber() == phone) {
+            return true; // Số điện thoại đã được đăng ký
+        }
+    }
+    return false; // Số điện thoại chưa được đăng ký
+}
+
+
+string ATM::inputPhoneNumber() {
+    string phone;
+    cin.ignore();
+    bool firstAttempt = true; // Biến để theo dõi nếu là lần nhập đầu tiên
+    do {
+        if (!firstAttempt) {
+            cout << "Invalid phone number format, please try again." << endl;
+        }
+        cout << "Enter your phone number: ";
+        getline(cin, phone);
+        firstAttempt = false; // Sau lần nhập đầu tiên
+
+        // Kiểm tra xem số điện thoại đã được đăng ký chưa
+        if (isPhoneNumberRegistered(phone)) {
+            cout << "This phone number has already been registered. Please try a different one." << endl;
+            cout << "Do you want to login or continue register? (Y/N)\n";
+            char YN;
+            cin >> YN;
+            if (YN == 'Y' || YN == 'y') return "N/A";
+            firstAttempt = true; // Để tiếp tục yêu cầu nhập lại
+            cin.ignore();
+        }
+    } while (!validatePhoneNumber(phone) || isPhoneNumberRegistered(phone));
+
+    return phone;
+}
+
+bool ATM::validatePhoneNumber(const string& phone) {
+    // Kiểm tra nếu số bắt đầu bằng '0' và có độ dài 10 số
+    if (phone.length() == 10 && phone[0] == '0') {
+        string index2 = phone.substr(0, 2); // Substr dùng để trích chuỗi string với độ dài của chuổi từ vị trí k
+        string index3 = phone.substr(0, 3);
+
+        if (index2 == "08" || index2 == "09" || index2 == "03" || index2 == "07" ||
+            index3 == "052" || index3 == "056" || index3 == "058" || index3 == "059") {
+            return true;
+        }
+    }
+    // Kiểm tra nếu số bắt đầu bằng "+84" và có độ dài 12 số
+    else if (phone.length() == 12 && phone.substr(0, 3) == "+84") {
+        string index2 = phone.substr(3, 2);
+        string index3 = phone.substr(3, 3);
+
+        if (index2 == "08" || index2 == "09" || index2 == "03" || index2 == "07" ||
+            index3 == "052" || index3 == "056" || index3 == "058" || index3 == "059") {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ATM::validatePassword(const string& password) {
+    bool hasUpper = false;
+    bool hasDigit = false;
+    bool hasSpecial = false;
+
+    if (password.length() < 10) {
+        cout << "Password must be at least 10 characters.\n";
+        return false;
+    }
+
+    for (char c : password) {
+        if (isupper(c)) hasUpper = true;
+        if (isdigit(c)) hasDigit = true;
+        if (ispunct(c)) hasSpecial = true;  // Ký tự đặc biệt
+    }
+
+    if (!hasUpper || !hasDigit || !hasSpecial) {
+        cout << "Password must contain at least 1 uppercase character, number and special character. Please try again!\n";
+        return false;
+    }
+
+    return true;
+}
+
+bool ATM::validateAmount(double amount, const string& transactionType) {
+    if (amount <= 0 || static_cast<int>(amount) % 5 != 0) { // amount được chuyển sang kiểu int bằng cách sử dụng static_cast<int>(amount)
+        cout << "The amount must be positive and a multiple of 5, please try again!" << endl;
+        return false;
+    }
+    if (transactionType == "Deposit" || transactionType == "Withdraw") {
+        if (amount < 50000.0) {
+            cout << "The minimum amount for performing the function is 50000VND, please try again!" << endl;
+            return false;
+        }
+    }
+    if (transactionType == "Transfer") {
+        if (amount < 10000.0) {
+            cout << "The minimum amount for performing the function is 10000VND, please try again!" << endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+int ATM::generateOTP() {
+    srand(static_cast<unsigned int>(time(0))); // Khởi tạo số ngẫu nhiên gồm 6 chữ số
+    return rand() % 900000 + 100000;
+}
+
+void ATM::loadUsersFromFile() {
+    ifstream inFile("user.txt");
+    if (!inFile) {
+        cout << "Error opening user.txt!" << endl;
+        return;
+    }
+
+    string phoneNumber, userName, password, pin;
+    double balance;
+
+    while (getline(inFile, phoneNumber, '\t') && inFile >> balance) {
+        inFile.ignore(); // Bỏ qua ký tự xuống dòng hoặc dấu cách sau balance
+        getline(inFile, userName, '\t');
+        getline(inFile, password, '\t');
+        getline(inFile, pin);
+
+        UserAccount user(phoneNumber, balance, userName, phoneNumber, password, pin);
+        users.push_back(user);
+    }
+
+    inFile.close();
+}
+
+void ATM::saveUserToFile(const UserAccount& user) {
+    ofstream outFile("user.txt", ios::app);  // Mở tệp ở chế độ thêm
+    if (!outFile) {
+        cout << "Error opening file!" << endl;
+        return;
+    }
+
+    outFile << user.getPhoneNumber() << "\t"
+        << user.getBalance() << "\t"
+        << user.getUserName() << "\t"
+        << user.getPassword() << "\t"
+        << user.getTransactionPIN() << endl;
+
+    outFile.close();
+}
+
+void ATM::saveAllUsersToFile() {
+    ofstream outFile("user.txt");
+    if (!outFile) {
+        cout << "Error opening user.txt for writing!" << endl;
+        return;
+    }
+
+    for (const UserAccount& user : users) {
+        outFile << user.getPhoneNumber() << "\t"
+            << user.getBalance() << "\t"
+            << user.getUserName() << "\t"
+            << user.getPassword() << "\t"
+            << user.getTransactionPIN() << "\n";
+    }
+
+    outFile.close();
+}
+
+void gotoxy(int x, int y) {
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+*file ATM.h:
+#pragma once
+#include "UserAccount.h"
+#include <vector>
+#include <windows.h>
+#include <iomanip>
+#include <ctime>
+#include <conio.h>
+#include <sstream>
+#include <string>
+#include <cstdlib>
+#include <fstream>
+using namespace std;
+
+class ATM {
+private:
+    vector<UserAccount> users;
+    UserAccount* loggedInUser;
+public:
+    ATM();
+    //thao tác người dùng để sử dụng tài khoản
+    void run();
+    void login();
+    void loginAfter();
+    void logout();
+    void registerUser();
+    void enterPassword(string& password);
+
+    //thao tác liên quan đến tiền bạc
+    void deposit();
+    void withdraw();
+    void transfer();
+    void transactionHistory(); 
+    void checkBalance();
+
+    //hàm chức năng hõ trợ thời gian, lịch sử
+    static string getCurrentDateTime();
+    void balanceFluctuation(const UserAccount& user, const Transaction& txn);
+
+    //hàm hỗ trợ cho kiểm tra dữ liệu đầu vào chuẩn form
+    bool isPhoneNumberRegistered(const string& phone);
+    string inputPhoneNumber();
+    bool validatePhoneNumber(const string& phone);
+    bool validatePassword(const string& password);
+    bool validateAmount(double amount, const string& transactionType);
+
+    int generateOTP();
+
+    // Lưu dữ liệu user vào file
+    void loadUsersFromFile();
+    void saveUserToFile(const UserAccount& user);
+    void saveAllUsersToFile();
+};
+
+//hàm ngoài hõ trợ cho việc thiết lập giao diện
+void gotoxy(int x, int y); // Ko phải phương thức của lớp
+
+*file Account.cpp:
+#include "Account.h"
+
+Account::Account(const string& accNum, double initialBalance)
+    : accountNumber(accNum), balance(initialBalance) {}
+
+void Account::deposit(double amount) {
+    balance += amount;
+}
+
+bool Account::withdraw(double amount) {
+    if (amount > balance) {
+        return false;
+    }
+    balance -= amount;
+    return true;
+}
+
+double Account::getBalance() const {
+    return balance;
+}
+
+string Account::getAccountNumber() const {
+    return accountNumber;
+}
+
+*file Account.h:
+#pragma once
+#include <string>
+using namespace std;
+
+class Account {
+protected:
+    string accountNumber;
+    double balance;
+
+public:
+    Account(const string& accNum, double initialBalance);
+
+    virtual void deposit(double amount);
+    virtual bool withdraw(double amount);
+
+    double getBalance() const;
+    string getAccountNumber() const;
+
+    virtual ~Account() {}
+};
+
+
+*file UserAccount.cpp:
+#include "UserAccount.h"
+
+UserAccount::UserAccount(const string& accNum, double initialBalance, const string& username,
+    const string& phone, const string& pass, const string& pin)
+    : Account(accNum, initialBalance), username(username), phoneNumber(phone),
+    password(pass), transactionPIN(pin) {}
+
+string UserAccount::getUserName() const {
+    return username;
+}
+
+string UserAccount::getPhoneNumber() const {
+    return phoneNumber;
+}
+string UserAccount::getPassword() const {
+    return password;
+}
+string UserAccount::getTransactionPIN() const {
+    return transactionPIN;
+}
+
+bool UserAccount::getPassword(const string& pass) const {
+    return password == pass;
+}
+
+bool UserAccount::getTransactionPIN(const string& pin) const {
+    return transactionPIN == pin;
+}
+
+// Implement phương thức thêm giao dịch
+void UserAccount::addTransaction(const Transaction& txn) {
+    transactions.push_back(txn);
+}
+
+// Implement phương thức lấy lịch sử giao dịch
+const vector<Transaction>& UserAccount::getTransactions() const {
+    return transactions;
+}
+
+*file UserAccount.h:
+#pragma once
+#include "Account.h"
+#include "Transaction.h"
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class UserAccount : public Account {
+private:
+    string username;
+    string phoneNumber;
+    string password;
+    string transactionPIN;
+    vector<Transaction> transactions;
+
+public:
+    UserAccount(const string& accNum, double initialBalance, const string& username,
+        const string& phone, const string& pass, const string& pin);
+
+    string getUserName() const;
+    string getPhoneNumber() const;
+    string getPassword() const;
+    string getTransactionPIN() const;
+
+    bool getPassword(const string& pass) const;
+    bool getTransactionPIN(const string& pin) const;
+
+    void addTransaction(const Transaction& txn);              
+    const vector<Transaction>& getTransactions() const;  
+};
+
+*file Menu.cpp:
+#include "Menu.h"
+#include <iostream>
+using namespace std;
+
+void Menu::displayHeader(const string& title) {
+#ifndef DEBUG
+    system("cls");  // Reset màn hình
+#endif
+    cout << "\033[1;36m";  // Màu xanh dương sáng
+    cout << "=========================================================================================================================================\n";
+
+    string bankName = "W3O BANK";
+    int width = 140; // Độ rộng của khung
+    int bankPadding = (width - bankName.length()) / 2;
+    cout << "||" << string(bankPadding, ' ') << bankName
+        << string(width - bankPadding - bankName.length() - 7, ' ') << "||\n";
+
+    cout << "=========================================================================================================================================\n";
+
+    int titlePadding = (width - title.length()) / 2;
+    cout << "||" << string(titlePadding, ' ') << title
+        << string(width - titlePadding - title.length() - 7, ' ') << "||\n";
+
+    cout << "=========================================================================================================================================\n";
+    cout << "\033[0m";  // Reset lại màu sắc
+}
+
+
+
+void Menu::showMenu() {
+    cout << "\033[1;34m"; // Màu xanh dương sáng cho tiêu đề
+
+    // Căn giữa khung tiêu đề bằng cách thêm khoảng trắng
+    cout << "                                                            +---------------------+\n";
+    cout << "                                                            |    W3O BANK MENU    |\n";
+    cout << "                                                            +---------------------+\n";
+
+    cout << "\033[0m"; // Reset lại màu sắc
+
+    // Khung lựa chọn với các ký tự khác và ngắn hơn
+    cout << "\033[1;32m";  // Màu xanh lá sáng cho khung
+    cout << "                                                    +-------------------------------------+\n";
+    cout << "                                                    | 1. Register                         |\n";
+    cout << "                                                    +-------------------------------------+\n";
+    cout << "                                                    | 2. Login                            |\n";
+    cout << "                                                    +-------------------------------------+\n";
+    cout << "                                                    | 3. Exit                             |\n";
+    cout << "                                                    +-------------------------------------+\n";
+    cout << "\033[0m"; // Reset lại màu sắc
+
+    cout << ">> Choose an option: ";
+}
+
+void Menu::showMenuLoginAfter() {
+    cout << "\033[1;34m"; // Màu xanh dương sáng cho tiêu đề
+
+    // Căn giữa khung tiêu đề bằng cách thêm khoảng trắng
+    cout << "                                                            +---------------------+\n";
+    cout << "                                                            |    W3O BANK MENU    |\n";
+    cout << "                                                            +---------------------+\n";
+
+    cout << "\033[0m"; // Reset lại màu sắc
+
+    // Khung lựa chọn với các ký tự khác và ngắn hơn
+    cout << "\033[1;32m";  // Màu xanh lá sáng cho khung
+    cout << "                                                    +---------------------------------------+\n";
+    cout << "                                                    | 1. Deposit                            |\n";
+    cout << "                                                    +---------------------------------------+\n";
+    cout << "                                                    | 2. Withdraw                           |\n";
+    cout << "                                                    +---------------------------------------+\n";
+    cout << "                                                    | 3. Transfer                           |\n";
+    cout << "                                                    +---------------------------------------+\n";
+    cout << "                                                    | 4. Check Balance                      |\n";
+    cout << "                                                    +---------------------------------------+\n";
+    cout << "                                                    | 5. Transaction History                |\n"; // Thêm tùy chọn này
+    cout << "                                                    +---------------------------------------+\n";
+    cout << "                                                    | 6. Logout                             |\n";
+    cout << "                                                    +---------------------------------------+\n";
+    cout << "\033[0m"; // Reset lại màu sắc
+
+    cout << ">> Choose an option: ";
+}
+
+*file Menu.h:
+#pragma once
+#include <string>
+#include <iostream>
+using namespace std;
+
+class Menu {
+public:
+    static void displayHeader(const string& title);
+    static void showMenu();
+    static void showMenuLoginAfter();
+};
+
+
+*file Transaction.h:
+#pragma once
+#include <string>
+
+using namespace std;
+
+struct Transaction {
+    string dateTime;      // Th?i gian giao d?ch
+    string type;          // Lo?i giao d?ch: "Deposit", "Withdraw", "Transfer Sent", "Transfer Received"
+    double amount;             // S? ti?n giao d?ch
+    double balanceAfter;       // S? d? sau giao d?ch
+    string details;       // Chi ti?t giao d?ch (ví d?: s? ?i?n tho?i ng??i nh?n/ g?i)
+};
+

@@ -32,12 +32,8 @@ public:
     void deposit();
     void withdraw();
     void transfer();
-    void transactionHistory();
+    void transactionHistory(); 
     void checkBalance();
-    bool esc(); //hõ trợ thao tác giao dịch
-    bool checkESC();
-    bool getInputWithESC(string& input, bool hideInput);
-    bool getInputWithESC(double& input);
 
     //hàm chức năng hõ trợ thời gian, lịch sử
     static string getCurrentDateTime();

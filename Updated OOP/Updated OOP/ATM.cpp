@@ -1,6 +1,5 @@
 ﻿#include "ATM.h"
 #include "Menu.h"
-#include "Transaction.h"
 #include <iostream>
 
 using namespace std;
@@ -92,40 +91,50 @@ void ATM::registerUser() {
     string numbers = inputPhoneNumber();
     if (numbers == "N/A") return;
     cout << "Your phone number is valid\n" << endl;
-    cout << "Enter the user name: ";
-    //cin.ignore();
-    getline(cin, username);
+
+    // Nhập tên người dùng và kiểm tra hợp lệ
+    do {
+        cout << "Enter the user name: ";
+        getline(cin, username);
+
+        if (!validateUserName(username)) {
+            cout << "Invalid username! Your username should only contain letters and spaces.\n";
+        }
+    } while (!validateUserName(username));
+
     cout << endl;
+
     // Nhập mật khẩu với kiểm tra
     do {
-
         password.clear(); // Xóa mật khẩu để nhập lại nếu không hợp lệ
-        enterPassword(password); //gọi hàm nhập để nhập pass
+        enterPassword(password); // Gọi hàm nhập để nhập pass
 
         // Kiểm tra mật khẩu sau khi nhập xong
     } while (!validatePassword(password));
 
-    // Nếu đã nhập mật khẩu hợp lệ
     cout << "Password is valid. Password entered successfully!\n";
-
     cout << endl; // Xuống dòng
 
-    int lent;
+    // Nhập mã PIN và kiểm tra hợp lệ
     do {
-        cout << "Set your transaction PIN(6 digits): ";
+        cout << "Set your transaction PIN (6 digits): ";
         cin >> pin;
-        lent = pin.size();
-        if (lent != 6) cout << "Your pin just have 6 digits!\n";
-    } while (lent != 6);
+
+        if (!validatePin(pin)) {
+            cout << "Invalid PIN! Your PIN must be exactly 6 digits and contain only numbers.\n";
+        }
+    } while (!validatePin(pin));
 
     cout << endl;
 
+    // Tạo tài khoản mới và lưu thông tin
     UserAccount newUser(numbers, 0, username, numbers, password, pin);
     users.push_back(newUser);
     saveUserToFile(newUser);  // Lưu người dùng vào tệp
 
     cout << "User registered successfully!\n";
 }
+
 
 void ATM::login() {
     Menu::displayHeader("Login");
@@ -137,7 +146,7 @@ void ATM::login() {
 
     //Nhập mật khẩu tài khoản
     enterPassword(password);
-   
+
     cout << endl; // Xuống dòng
 
     for (UserAccount& user : users) {
@@ -200,15 +209,30 @@ void ATM::loginAfter() {
 
 void ATM::logout() {
     Menu::displayHeader("Logout");
+
     if (loggedInUser == nullptr) {
         cout << "You are not logged in.\n";
         return;
     }
-    loggedInUser = nullptr;
-    cout << "Logged out successfully.\n";
+
+    char YN;
+    cout << "Do you want to log out? (Y/N): ";
+    cin >> YN;
+
+    if (YN == 'Y' || YN == 'y') {
+        loggedInUser = nullptr;
+        cout << "Logged out successfully.\n";
+    }
+    else {
+        system("cls");
+        loginAfter();
+    }
 }
 
 void ATM::deposit() {
+
+    loggedInUser->syncBalanceFromHistory();
+
     Menu::displayHeader("Deposit");
     string transactionType = "Deposit";
     string pin;
@@ -224,12 +248,12 @@ void ATM::deposit() {
     do {
         cout << "Enter amount to deposit: ";
         cin >> amount;
-        if (!validateAmount(amount, transactionType))
-            return;
     } while (!validateAmount(amount, transactionType)); //Dieu kien de lap lai viec nhap la khi nhap sai
 
     loggedInUser->deposit(amount);
-    cout << "Deposit successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
+    // Sử dụng fixed và setprecision để định dạng số
+    cout << fixed << setprecision(2);
+    cout << "\nDeposit successful! Your new balance is: " << loggedInUser->getBalance() << " VND\n";
 
     // Tạo giao dịch và thêm vào lịch sử
     Transaction txn;
@@ -247,6 +271,9 @@ void ATM::deposit() {
 }
 
 void ATM::withdraw() {
+    // Đồng bộ số dư từ file trước khi rút tiền
+    loggedInUser->syncBalanceFromHistory();
+
     Menu::displayHeader("Withdraw");
     string transactionType = "Withdraw";
     string pin;
@@ -262,12 +289,11 @@ void ATM::withdraw() {
     do {
         cout << "Enter amount to withdraw: ";
         cin >> amount;
-        if (!validateAmount(amount, transactionType))
-            return;
     } while (!validateAmount(amount, transactionType));
 
     if (loggedInUser->withdraw(amount)) {
-        cout << "Withdrawal successful! Your new balance is: " << loggedInUser->getBalance() << "\n";
+        cout << fixed << setprecision(2); // Định dạng số tiền
+        cout << "\nWithdrawal successful! Your new balance is: " << loggedInUser->getBalance() << " VND\n";
 
         // Tạo giao dịch và thêm vào lịch sử
         Transaction txn;
@@ -289,18 +315,46 @@ void ATM::withdraw() {
 }
 
 void ATM::transfer() {
+
+    loggedInUser->syncBalanceFromHistory();
+
     Menu::displayHeader("Transfer");
     string transactionType = "Transfer";
     string receiverNumbers, pin;
     double amount;
 
-    cout << "Enter recipient's phone number: ";
+    cout << "\nEnter recipient's phone number: ";
     cin >> receiverNumbers;
+    
+    // Kiểm tra người nhận có tồn tại ngay sau khi nhập số điện thoại
+    bool recipientFound = false;
+    UserAccount* recipient = nullptr;
+    for (UserAccount& user : users) {
+        if (user.getPhoneNumber() == receiverNumbers) {
+            recipientFound = true;
+            recipient = &user;
+            break;
+        }
+    }
+
+    if (!recipientFound) {
+        cout << "Recipient not found.\n";
+        char retryChoice;
+        cout << "Do you want to try again? (Y/N): ";
+        cin >> retryChoice;
+
+        if (retryChoice == 'Y' || retryChoice == 'y') {
+            transfer();  // Gọi lại hàm transfer để thực hiện lại từ đầu
+        }
+        else {
+            cout << "Transaction cancelled.\n";
+        }
+        return;
+    }
+
     do {
         cout << "Enter amount to transfer: ";
         cin >> amount;
-        if (!validateAmount(amount, transactionType))
-            return;
     } while (!validateAmount(amount, transactionType));
 
     do {
@@ -320,74 +374,63 @@ void ATM::transfer() {
         cout << "Enter OTP code to confirm money transfer: ";
         cin >> userInput;
         if (userInput == otp) {
-            // Kiểm tra người nhận có tồn tại hay không
-            bool recipientFound = false;
-            for (UserAccount& user : users) {
-                if (user.getPhoneNumber() == receiverNumbers) {
-                    recipientFound = true;
+            // Kiểm tra nếu người gửi có đủ tiền để chuyển
+            if (loggedInUser->withdraw(amount)) {
+                recipient->deposit(amount);
+                cout << "\033[1;35m";
+                cout << "\n|=======================================================================================================================================|" << "\n";
+                cout << fixed << setprecision(2) << "\033[1;37m" << "                                      Transfer to " << recipient->getUserName() << " successful! -" << amount << " VND\n";
+                cout << "\033[1;35m";
+                cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                cout << "                                               >>[Receiver]:      " << "\033[1;37m" << recipient->getPhoneNumber() << "\n";
+                cout << "\033[1;35m";
+                cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                cout << "                                               >>[Recipient Name]:      " << "\033[1;37m" << recipient->getUserName() << "\n";
+                cout << "\033[1;35m";
+                cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                cout << fixed << setprecision(2) << "                                               >>[Amount]:       " << "\033[1;37m" << "+" << amount << " VND\n";
+                cout << "\033[1;35m";
+                cout << "|=======================================================================================================================================|" << "\n\n";
+                cout << "\033[0m";
 
-                    // Kiểm tra nếu người gửi có đủ tiền để chuyển
-                    if (loggedInUser->withdraw(amount)) {
-                        user.deposit(amount);
-                        cout << "\033[1;35m";
-                        cout << "\n|=======================================================================================================================================|" << "\n";
-                        cout << "\033[1;37m" << "                                      Transfer to " << user.getUserName() << " successful! -" << amount << " VND\n";
-                        cout << "\033[1;35m";
-                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
-                        cout << "                                               >>[Receiver]:      " << "\033[1;37m" << user.getPhoneNumber() << "\n";
-                        cout << "\033[1;35m";
-                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
-                        cout << "                                               >>[Recipient Name]:      " << "\033[1;37m" << user.getUserName() << "\n";
-                        cout << "\033[1;35m";
-                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
-                        cout << "                                               >>[Amount]:       " << "\033[1;37m" << loggedInUser->getBalance() << " VND\n";
-                        cout << "\033[1;35m";
-                        cout << "|=======================================================================================================================================|" << "\n\n";
-                        cout << "\033[0m";
+                // Tạo giao dịch gửi tiền
+                Transaction txnSent;
+                txnSent.dateTime = getCurrentDateTime();
+                txnSent.type = "Transfer Sent";
+                txnSent.amount = amount;
+                txnSent.balanceAfter = loggedInUser->getBalance();
+                txnSent.details = "To: " + recipient->getPhoneNumber() + " (" + shortenName(recipient->getUserName()) + ")";
+                loggedInUser->addTransaction(txnSent);
 
-                        // Tạo giao dịch gửi tiền
-                        Transaction txnSent;
-                        txnSent.dateTime = getCurrentDateTime();
-                        txnSent.type = "Transfer Sent";
-                        txnSent.amount = amount;
-                        txnSent.balanceAfter = loggedInUser->getBalance();
-                        txnSent.details = "To: " + user.getPhoneNumber() + " (" + user.getUserName() + ")";
-                        loggedInUser->addTransaction(txnSent);
+                // Ghi giao dịch gửi tiền vào file lịch sử
+                balanceFluctuation(*loggedInUser, txnSent);
 
-                        // Ghi giao dịch gửi tiền vào file lịch sử
-                        balanceFluctuation(*loggedInUser, txnSent);
+                // Tạo giao dịch nhận tiền cho người nhận
+                Transaction txnReceived;
+                txnReceived.dateTime = getCurrentDateTime();
+                txnReceived.type = "Transfer Received";
+                txnReceived.amount = amount;
+                txnReceived.balanceAfter = recipient->getBalance();
+                txnReceived.details = "From: " + loggedInUser->getPhoneNumber() + " (" + shortenName(loggedInUser->getUserName()) + ")";
+                recipient->addTransaction(txnReceived);
 
-                        // Tạo giao dịch nhận tiền cho người nhận
-                        Transaction txnReceived;
-                        txnReceived.dateTime = getCurrentDateTime();
-                        txnReceived.type = "Transfer Received";
-                        txnReceived.amount = amount;
-                        txnReceived.balanceAfter = user.getBalance();
-                        txnReceived.details = "From: " + loggedInUser->getPhoneNumber() + " (" + loggedInUser->getUserName() + ")";
-                        user.addTransaction(txnReceived);
+                // Ghi giao dịch nhận tiền vào file lịch sử
+                balanceFluctuation(*recipient, txnReceived);
 
-                        // Ghi giao dịch nhận tiền vào file lịch sử
-                        balanceFluctuation(user, txnReceived);
-
-                        saveAllUsersToFile();
-                    }
-                    else {
-                        cout << "Insufficient balance.\n";
-                    }
-                    return;
-                }
+                saveAllUsersToFile();
             }
-            // Nếu không tìm thấy người nhận
-            if (!recipientFound) {
-                cout << "Recipient not found.\n";
-                return;
+            else {
+                cout << "Insufficient balance.\n";
             }
+            return;
         }
         if (userInput != otp) {
             cout << "Incorrect OTP code, please try again..." << endl;
         }
     } while (userInput != otp);
+    cout.unsetf(ios::fixed);//reset định dạng cout
 }
+
 
 void ATM::transactionHistory() {
     if (loggedInUser == nullptr) {
@@ -406,14 +449,13 @@ void ATM::transactionHistory() {
 
     Menu::displayHeader("Transaction History");
 
-    cout << "\033[1;37m";
-    cout << "\n+=======================================================================================================================================+\n";
-    cout << "|" << "\033[1;33m" << "888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888" << "\033[1;37m" << "|\n";
+    cout << "\033[1;37m\n";
+    cout << "+=======================================================================================================================================+\n";
     cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
     cout << "| Date & Time\t\tType\t\t\tAmount\t\t\tBalance After\t\tDetails                                 |\n";
     cout << "|---------------------------------------------------------------------------------------------------------------------------------------|";
 
-    int y = 11;
+    int y = 10;
     while (getline(inFile, line)) {
         istringstream iss(line);
         string phoneNumber, userName, dateTime, type, details;
@@ -430,9 +472,6 @@ void ATM::transactionHistory() {
 
         // Kiểm tra nếu số điện thoại trùng với người dùng hiện tại
         if (phoneNumber == loggedInUser->getPhoneNumber()) {
-            /*      hasTransaction = true;
-                  cout << "| " << dateTime << "\t" << type << "\t\t" << amount << "\t\t"
-                      << balanceAfter << "\t\t" << details << " |\n";*/
             hasTransaction = true;
             gotoxy(0, y);
             cout << "|";
@@ -441,9 +480,10 @@ void ATM::transactionHistory() {
             gotoxy(24, y); // Thay đổi X để đặt vị trí cho 'Type'
             cout << type;
             gotoxy(48, y); // Thay đổi X để đặt vị trí cho 'Amount'
-            cout << amount;
+            // Định dạng số liệu (giữ 2 chữ số thập phân)
+            cout << fixed << setprecision(2) << amount;
             gotoxy(72, y); // Thay đổi X để đặt vị trí cho 'Balance After'
-            cout << balanceAfter;
+            cout << fixed << setprecision(2) << balanceAfter;
             gotoxy(96, y); // Thay đổi X để đặt vị trí cho 'Details'
             cout << details;
             gotoxy(136, y);
@@ -464,9 +504,10 @@ void ATM::transactionHistory() {
         cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
     }
 
-    cout << "|" << "\033[1;33m" << "888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888" << "\033[1;37m" << "|\n";
+
     cout << "+=======================================================================================================================================+\n";
     cout << "\033[0m";
+    cout.unsetf(ios::fixed);
     inFile.close();
 }
 
@@ -480,10 +521,11 @@ void ATM::checkBalance() {
     cout << "                                        >>[User Name]:         " << "\033[1;37m" << loggedInUser->getUserName() << "\n";
     cout << "\033[1;35m";
     cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
-    cout << "                                        >>[Your balance is]:         " << "\033[1;37m" << loggedInUser->getBalance() << "VND\n";
+    cout << fixed << setprecision(2) << "                                        >>[Your balance is]:         " << "\033[1;37m" << loggedInUser->getBalance() << "VND\n";
     cout << "\033[1;35m";
     cout << "|=======================================================================================================================================|" << "\n\n";
     cout << "\033[0m";
+    cout.unsetf(ios::fixed);
 }
 
 string ATM::getCurrentDateTime() {
@@ -503,19 +545,27 @@ string ATM::getCurrentDateTime() {
 }
 
 void ATM::balanceFluctuation(const UserAccount& user, const Transaction& txn) {
-    ofstream outFile("userHistory.txt", ios::app);
+    ofstream outFile("userHistory.txt", ios::app); // Mở file ở chế độ ghi thêm
     if (!outFile) {
         cout << "Error opening userHistory.txt for writing!" << endl;
         return;
     }
+
+    // Chuyển đổi số tiền và số dư sau giao dịch sang chuỗi với định dạng cố định 2 chữ số thập phân
+    ostringstream amountStream, balanceStream;
+    amountStream << fixed << setprecision(2) << txn.amount;
+    balanceStream << fixed << setprecision(2) << txn.balanceAfter;
+
+    string amountStr = amountStream.str();
+    string balanceStr = balanceStream.str();
 
     // Ghi thông tin giao dịch với định dạng: Số điện thoại, Tên người dùng, Thời gian, Loại giao dịch, Số tiền, Số dư sau giao dịch, Chi tiết
     outFile << user.getPhoneNumber() << "\t"
         << user.getUserName() << "\t"
         << txn.dateTime << "\t"
         << txn.type << "\t"
-        << txn.amount << "\t"
-        << txn.balanceAfter << "\t"
+        << amountStr << "\t"
+        << balanceStr << "\t"
         << txn.details << "\n";
 
     outFile.close();
@@ -547,7 +597,7 @@ string ATM::inputPhoneNumber() {
         // Kiểm tra xem số điện thoại đã được đăng ký chưa
         if (isPhoneNumberRegistered(phone)) {
             cout << "This phone number has already been registered. Please try a different one." << endl;
-            cout << "Do you want to login or continue register? (Y/N)\n";
+            cout << "Do you want to login or continue register? (Y/N): ";
             char YN;
             cin >> YN;
             if (YN == 'Y' || YN == 'y') return "N/A";
@@ -582,6 +632,14 @@ bool ATM::validatePhoneNumber(const string& phone) {
     }
     return false;
 }
+bool ATM::validateUserName(const string& username) {
+    for (char c : username) {
+        if (!isalpha(c) && c != ' ') { // Chỉ cho phép chữ cái và khoảng trắng
+            return false;
+        }
+    }
+    return true;
+}
 
 bool ATM::validatePassword(const string& password) {
     bool hasUpper = false;
@@ -604,6 +662,15 @@ bool ATM::validatePassword(const string& password) {
         return false;
     }
 
+    return true;
+}
+bool ATM::validatePin(const string& pin) {
+    if (pin.size() != 6) return false; // Kiểm tra độ dài
+    for (char c : pin) {
+        if (!isdigit(c)) { // Kiểm tra từng ký tự có phải số hay không
+            return false;
+        }
+    }
     return true;
 }
 
@@ -694,4 +761,24 @@ void gotoxy(int x, int y) {
     coord.X = x;
     coord.Y = y;
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+string shortenName(const string& fullName) {
+    stringstream ss(fullName);
+    string word, shortenedName;
+
+    vector<string> words; // Lưu tất cả các từ trong tên
+    while (ss >> word) {
+        words.push_back(word);
+    }
+
+    if (words.empty()) return fullName; // Trả về tên ban đầu nếu không có từ nào
+
+    for (size_t i = 0; i < words.size() - 1; ++i) {
+        shortenedName += toupper(words[i][0]); // Viết hoa ký tự đầu của từng từ
+        shortenedName += ".";
+    }
+
+    // Thêm từ cuối cùng vào đầy đủ
+    shortenedName += words.back();
+    return shortenedName;
 }

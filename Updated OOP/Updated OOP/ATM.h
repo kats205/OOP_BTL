@@ -1,15 +1,18 @@
 ﻿#pragma once
 #include "UserAccount.h"
+#include "Transaction.h"
 #include <vector>
-#include <windows.h>
-#include <iomanip>
-#include <ctime>
-#include <conio.h>
-#include <sstream>
 #include <string>
-#include <cstdlib>
+#include <iostream>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <cstdlib>
+#include <ctime>
+#include <windows.h>
+#include <conio.h>
 using namespace std;
+
 
 class ATM {
 private:
@@ -29,7 +32,7 @@ public:
     void deposit();
     void withdraw();
     void transfer();
-    void transactionHistory(); 
+    void transactionHistory();
     void checkBalance();
 
     //hàm chức năng hõ trợ thời gian, lịch sử
@@ -40,7 +43,9 @@ public:
     bool isPhoneNumberRegistered(const string& phone);
     string inputPhoneNumber();
     bool validatePhoneNumber(const string& phone);
+    bool validateUserName(const string& username);
     bool validatePassword(const string& password);
+    bool validatePin(const string& pin);
     bool validateAmount(double amount, const string& transactionType);
 
     int generateOTP();
@@ -51,5 +56,9 @@ public:
     void saveAllUsersToFile();
 };
 
-//hàm ngoài hõ trợ cho việc thiết lập giao diện
+//hàm ngoài hõ trợ cho việc thiết lập
+
 void gotoxy(int x, int y); // Ko phải phương thức của lớp
+
+//hỗ trợ hiển thị cho lịch sử giao dịch khi in
+string shortenName(const string& fullName);

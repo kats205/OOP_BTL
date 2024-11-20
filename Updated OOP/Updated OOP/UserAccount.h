@@ -3,6 +3,10 @@
 #include "Transaction.h"
 #include <vector>
 #include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
 
 using namespace std;
 
@@ -28,4 +32,6 @@ public:
 
     void addTransaction(const Transaction& txn);               // Thêm phương thức này
     const vector<Transaction>& getTransactions() const;  // Thêm phương thức này
+    void syncBalanceFromHistory(); // Đồng bộ số dư từ file lịch sử giao dịch
+
 };

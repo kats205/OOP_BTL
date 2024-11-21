@@ -893,8 +893,8 @@ bool ATM::esc() {
     cout << "\n[!] You have canceled the transaction.\n";
     cout << "-----------------------------------------\n";
     cout << "Do you want to:\n";
-    cout << "1. Continue this transaction\n";
-    cout << "2. Go back to the login screen\n";
+    cout << "1. Continue this transaction [Y]\n";
+    cout << "2. Go back to the login screen [N]\n";
     cout << "-----------------------------------------\n";
     cout << "Enter your choice (Y/N): ";
 
@@ -916,10 +916,6 @@ bool ATM::esc() {
         return false; // Quay lại màn hình đăng nhập
     }
 }
-#include <windows.h> // Để sử dụng GetAsyncKeyState và GetKeyState
-#include <conio.h>   // Để sử dụng _kbhit() và _getch()
-#include <iostream>
-using namespace std;
 
 bool ATM::getInputWithESC(string& input, bool hideInput = false) {
     input = "";

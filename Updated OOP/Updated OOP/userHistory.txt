@@ -19,3 +19,5 @@
 1	test	21/11/24 00:58:37	Transfer Received	100000.00	1996100000.00	From: 1 (test)
 1	test	21/11/24 00:58:55	Transfer Sent	10000.00	1996100000.00	To: 1 (test)
 1	test	21/11/24 00:58:55	Transfer Received	10000.00	1996100000.00	From: 1 (test)
+1	test	25/11/24 05:18:05	Deposit	32324455.00	2028424455.00	N/A
+1	test	25/11/24 05:19:32	Withdraw	500000.00	2027924455.00	N/A

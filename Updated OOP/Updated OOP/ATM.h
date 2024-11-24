@@ -38,7 +38,7 @@ public:
     bool esc(); //hõ trợ thao tác giao dịch
     bool checkESC();
     bool getInputWithESC(string& input, bool hideInput);
-    bool getInputWithESC(double& input);
+    bool inputWithESC(double& input);
 
     //hàm chức năng hõ trợ thời gian, lịch sử, bill
     static string getCurrentDateTime();
@@ -56,6 +56,7 @@ public:
     bool validateAmount(double amount, const string& transactionType);
     int validateOptionMenu();
     int validateOptionMainMenu(); // 2 hàm hỗ trợ chặn đầu vào cho menu
+    char getSingleChar();
 
     int generateOTP();
 

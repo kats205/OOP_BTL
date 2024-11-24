@@ -18,9 +18,7 @@ void ATM::run() {
     loadUsersFromFile();  // Load users from file at startup
     int choice;
     do {
-        Menu::displayHeader("<<WELCOME TO W3O BANK>>");
-        Menu::showMenu();
-        cin >> choice;
+        choice = validateOptionMenu();
         switch (choice) {
         case 1: registerUser();
             cout << "Press Enter to continue...";
@@ -34,7 +32,7 @@ void ATM::run() {
             break;
         case 3: cout << "Goodbye!" << endl;
             break;
-        default: cout << "Invalid choice, try again." << endl;
+        default:
             cout << ">> Choose an option: ";
             break;
         }
@@ -168,41 +166,45 @@ void ATM::login() {
 void ATM::loginAfter() {
     int choice;
     do {
-        Menu::displayHeader("User Login Account");
-        Menu::showMenuLoginAfter();
-        cin >> choice;
-
+        choice = validateOptionMainMenu();
         switch (choice) {
-        case 1: deposit();
+        case 1:
+            deposit();
             cout << "Press Enter to return to menu...";
             cin.ignore();
             cin.get();
             break;
-        case 2: withdraw();
+        case 2:
+            withdraw();
             cout << "Press Enter to return to menu...";
             cin.ignore();
             cin.get();
             break;
-        case 3: transfer();
+        case 3:
+            transfer();
             cout << "Press Enter to return to menu...";
             cin.ignore();
             cin.get();
             break;
-        case 4: checkBalance();
+        case 4:
+            checkBalance();
             cout << "Press Enter to return to menu...";
             cin.ignore();
             cin.get();
             break;
-        case 5: transactionHistory(); // Thêm tùy chọn này
+        case 5:
+            transactionHistory(); // Thêm tùy chọn này
             cout << "\nPress Enter to return to menu...";
             cin.ignore();
             cin.get();
             break;
-        case 6: logout();
+        case 6:
+            logout();
             break;
-        default: cout << "Invalid choice, try again." << endl; break;
+        default:
+            cout << ">> Choose an option: ";
+            break;
         }
-
     } while (choice != 6);
 }
 
@@ -289,6 +291,9 @@ void ATM::deposit() {
         // Ghi giao dịch vào file lịch sử
         balanceFluctuation(*loggedInUser, txn);
 
+        // Lựa chọn in hóa đơn
+        processPrintBillOption(txn);
+
         saveAllUsersToFile();
         return; // Kết thúc sau khi giao dịch thành công
     }
@@ -353,6 +358,10 @@ void ATM::withdraw() {
             loggedInUser->addTransaction(txn);
 
             balanceFluctuation(*loggedInUser, txn);
+
+            // Lựa chọn in hóa đơn
+            processPrintBillOption(txn);
+
             saveAllUsersToFile();
             return;
         }
@@ -363,133 +372,231 @@ void ATM::withdraw() {
     }
 }
 void ATM::transfer() {
-
     loggedInUser->syncBalanceFromHistory();
 
     string transactionType = "Transfer";
     string receiverNumbers, pin;
     double amount;
 
-    while (true) {
-        system("cls");
-        Menu::displayHeader("Transfer");
+    UserAccount* recipient = nullptr;
+        while (true) {
+            step1:
+            system("cls");
+            Menu::displayHeader("Transfer");
 
-        // Bước 1: Nhập số điện thoại người nhận
-        cout << "Enter recipient's phone number: ";
-        cin >> receiverNumbers;
+            // Bước 1: Nhập số điện thoại người nhận
+            cout << "Enter recipient's phone number: ";
+            cin >> receiverNumbers;
 
-        // Kiểm tra người nhận có tồn tại ngay sau khi nhập số điện thoại
-        bool recipientFound = false;
-        UserAccount* recipient = nullptr;
-        for (UserAccount& user : users) {
-            if (user.getPhoneNumber() == receiverNumbers) {
-                recipientFound = true;
-                recipient = &user;
-                break;
+            // Kiểm tra người nhận có tồn tại ngay sau khi nhập số điện thoại
+            bool recipientFound = false;
+            UserAccount* recipient = nullptr;
+            for (UserAccount& user : users) {
+                if (user.getPhoneNumber() == receiverNumbers) {
+                    recipientFound = true;
+                    recipient = &user;
+                    break;
+                }
             }
-        }
 
-        if (!recipientFound) {
-            cout << "Recipient not found.\n\n";
-            char retryChoice;
-            cout << "Do you want to try again? (Y/N): ";
-            cin >> retryChoice;
+            if (!recipientFound) {
+                cout << "Recipient not found.\n\n";
+                char retryChoice;
+                cout << "Do you want to try again? (Y/N): ";
+                cin >> retryChoice;
 
-            if (retryChoice == 'Y' || retryChoice == 'y') {
-                continue;  // Tiếp tục lại từ đầu
-            }
-            else {
-                cout << "\nTransaction cancelled.\n";
-                return;  // Hủy giao dịch
-            }
-        }
-
-        // Bước 2: Nhập số tiền
-        cout << "\nEnter amount to transfer (Press ESC to cancel): ";
-        if (!getInputWithESC(amount)) return;  // Kiểm tra ESC và quay lại nếu cần
-        if (amount == -1.0) continue;
-
-        if (!validateAmount(amount, transactionType)) {
-            cout << "\n[X] Invalid amount. Please try again!\n";
-            system("pause");
-            continue;
-        }
-
-        // Bước 3: Nhập mã PIN
-        cout << "\n\nEnter your transaction PIN (Press ESC to cancel): ";
-        if (!getInputWithESC(pin, true)) return;  // Kiểm tra ESC và quay lại nếu cần
-        if (pin.empty()) continue; // Nếu ESC được nhấn và chọn tiếp tục, quay lại bước nhập mã PIN
-
-        if (!loggedInUser->getTransactionPIN(pin)) {
-            cout << "\n[X] Incorrect PIN. Please try again!\n\n";
-            system("pause");
-            continue;
-        }
-
-        // Bước 4: Nhập OTP
-        int otp = generateOTP(); // Tạo mã OTP
-        cout << "\n\nAn OTP has been sent to your registered device: " << setw(6) << setfill('0') << otp << endl; // Đảm bảo mã OTP luôn có 6 chữ số
-        int userInput;
-        do {
-            cout << "Enter OTP code to confirm money transfer: ";
-            cin >> userInput;
-            if (userInput == otp) {
-                // Kiểm tra nếu người gửi có đủ tiền để chuyển
-                if (loggedInUser->withdraw(amount)) {
-                    recipient->deposit(amount);
-                    cout << "\033[1;35m";
-                    cout << "\n|=======================================================================================================================================|" << "\n";
-                    cout << fixed << setprecision(2) << "\033[1;37m" << "                                      Transfer to " << recipient->getUserName() << " successful! -" << amount << " VND\n";
-                    cout << "\033[1;35m";
-                    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
-                    cout << "                                               >>[Receiver]:      " << "\033[1;37m" << recipient->getPhoneNumber() << "\n";
-                    cout << "\033[1;35m";
-                    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
-                    cout << "                                               >>[Recipient Name]:      " << "\033[1;37m" << recipient->getUserName() << "\n";
-                    cout << "\033[1;35m";
-                    cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
-                    cout << fixed << setprecision(2) << "                                               >>[Amount]:       " << "\033[1;37m" << "+" << amount << " VND\n";
-                    cout << "\033[1;35m";
-                    cout << "|=======================================================================================================================================|" << "\n\n";
-                    cout << "\033[0m";
-
-                    // Tạo giao dịch gửi tiền
-                    Transaction txnSent;
-                    txnSent.dateTime = getCurrentDateTime();
-                    txnSent.type = "Transfer Sent";
-                    txnSent.amount = amount;
-                    txnSent.balanceAfter = loggedInUser->getBalance();
-                    txnSent.details = "To: " + recipient->getPhoneNumber() + " (" + shortenName(recipient->getUserName()) + ")";
-                    loggedInUser->addTransaction(txnSent);
-
-                    // Ghi giao dịch gửi tiền vào file lịch sử
-                    balanceFluctuation(*loggedInUser, txnSent);
-
-                    // Tạo giao dịch nhận tiền cho người nhận
-                    Transaction txnReceived;
-                    txnReceived.dateTime = getCurrentDateTime();
-                    txnReceived.type = "Transfer Received";
-                    txnReceived.amount = amount;
-                    txnReceived.balanceAfter = recipient->getBalance();
-                    txnReceived.details = "From: " + loggedInUser->getPhoneNumber() + " (" + shortenName(loggedInUser->getUserName()) + ")";
-                    recipient->addTransaction(txnReceived);
-
-                    // Ghi giao dịch nhận tiền vào file lịch sử
-                    balanceFluctuation(*recipient, txnReceived);
-
-                    saveAllUsersToFile();
+                if (retryChoice == 'Y' || retryChoice == 'y') {
+                    continue;  // Tiếp tục lại từ đầu
                 }
                 else {
-                    cout << "Insufficient balance.\n";
+                    cout << "\nTransaction cancelled.\n";
+                    return;  // Hủy giao dịch
                 }
-                return;
             }
-            if (userInput != otp) {
-                cout << "Incorrect OTP code, please try again..." << endl;
+            // In ra thông tin người nhận
+            cout << "\n\033[1;32mRecipient found!\033[0m\n";  // Xanh lá đậm cho "Recipient found"
+            cout << "\033[1;34mPhone Number:\033[0m \033[1;37m" << recipient->getPhoneNumber() << "\033[0m" << endl;  // Số điện thoại màu xanh dương, giá trị màu trắng
+            cout << "\033[1;34mRecipient Name:\033[0m \033[1;37m" << recipient->getUserName() << "\033[0m" << endl;  // Tên người nhận màu xanh dương, giá trị màu trắng
+
+
+        // Bước 2: Nhập số tiền
+            step2:
+            cout << "\nEnter amount to transfer (Press ESC to cancel): ";
+            if (!getInputWithESC(amount)) return;  // Kiểm tra ESC và quay lại nếu cần
+            else if (amount == -1.0) {
+                cout << "\033[A\033[K"; goto step2;
+            }  // ESC được nhấn, quay lại
+
+            if (!validateAmount(amount, transactionType)) {
+                cout << "\033[1;31m[X] Invalid amount. Please try again!\033[0m\n";
+                system("pause");
+                // Xóa dòng lỗi và yêu cầu nhập lại số tiền
+                cout << "\033[A\033[K\033[A\033[K\033[A\033[K\033[A\033[K\033[A\033[K";  // Di chuyển con trỏ lên dòng trên
+                goto step2;  // Tiếp tục nhập số tiền
             }
-        } while (userInput != otp);
+            // Kiểm tra số dư trước khi tiếp tục
+            if (loggedInUser->getBalance() < amount) {
+                cout << "\n\033[1;31m[!] Insufficient balance.\033[0m\n";  // Thông báo không đủ tiền
+                system("pause");
+                cout << "\033[A\033[K\033[A\033[K\033[A\033[K\033[A\033[K";  // Di chuyển con trỏ lên 2 dòng trước đó
+                goto step2;  // Tiếp tục yêu cầu nhập số tiền
+            }
+            cout << "\n\n";
+
+            // Bước 3: Nhập mã PIN
+        step3:
+            int attemptCount = 0;  // Biến đếm số lần nhập mã PIN sai
+            while (attemptCount < 3) {  // Để nhập mã PIN sai tối đa 3 lần
+                cout << "Enter your transaction PIN (Press ESC to cancel): ";
+                if (!getInputWithESC(pin, true)) return;  // Kiểm tra ESC và quay lại nếu cần
+
+                // Nếu chưa nhập gì mà chỉ nhấn Enter
+                if (pin.empty()) {
+                    cout << "\n\033[1;31m[X] PIN cannot be empty. Please enter a valid PIN.\033[0m\n";
+                    system("pause");
+                    // Xóa dòng lỗi và yêu cầu nhập lại mã PIN
+                    cout << "\033[A\033[K\033[A\033[K\033[A\033[K\033[A\033[K"; // Di chuyển con trỏ lên 2 dòng trước đó
+                    cout << "\n";
+                    continue; // Tiếp tục bước nhập mã PIN
+                }
+
+                if (!loggedInUser->getTransactionPIN(pin)) {
+                    cout << "\n\033[1;31m[X] Incorrect PIN. Please try again!\033[0m\n";
+                    system("pause");
+                    // Xóa dòng lỗi và yêu cầu nhập lại mã PIN
+                    cout << "\033[A\033[K\033[A\033[K\033[A\033[K\033[A\033[K"; // Di chuyển con trỏ lên 2 dòng trước đó
+                    attemptCount++;  // Tăng số lần nhập sai
+                    cout << "\n";
+                    if (attemptCount >= 3) {
+                        char retryChoice;
+                        cout << "\033[1;33mYou have entered the wrong PIN 3 times.\033[0m\n";
+                        cout << "Do you want to try a different function? (Y/N): ";
+                        cin >> retryChoice;
+
+                        // Kiểm tra xem người dùng có chọn 'Y' hoặc 'N'
+                        while (retryChoice != 'Y' && retryChoice != 'y' && retryChoice != 'N' && retryChoice != 'n') {
+                            cout << "\033[1;31m[X] Invalid input. Please enter Y or N:\033[0m ";
+                            cin >> retryChoice;
+                        }
+
+                        if (retryChoice == 'Y' || retryChoice == 'y') {
+                            // Quay về màn hình chính hoặc chức năng khác
+                            cout << "\nReturning to the main screen...\n";
+                            return;  // Quay lại màn hình chính (hoặc màn hình khác)
+                        }
+                        else {
+                            // Tiếp tục yêu cầu nhập lại mã PIN
+                            cout << "\nYou may try again.\n";
+                            attemptCount = 0;  // Đặt lại số lần sai về 0
+                            system("pause");
+                            goto step1;
+                        }
+                    }
+                }
+                else {
+                    // Nếu mã PIN đúng, thoát khỏi vòng lặp
+                    break;
+                }
+            }
+
+
+            // Bước 4: Nhập OTP
+            int otp = generateOTP(); // Tạo mã OTP
+            cout << "\n\n\033[1;33m[!] An OTP has been sent to your registered device:\033[0m ";  // Thông báo OTP
+            cout << "\033[1;36m" << setw(6) << setfill('0') << otp << "\033[0m";  // Mã OTP với màu xanh dương đậm
+            cout << "\n\n\033[1;33m[!] Please use the OTP to confirm your money transfer.\033[0m" << endl;  // Thông báo nhắc nhở
+
+            int userInput=0;
+            cin.ignore();
+            do {
+                cout << "\n\033[1;32mEnter OTP code to confirm money transfer: \033[0m";  // Màu xanh lá cây cho yêu cầu nhập OTP
+                string otpInput;
+                getline(cin, otpInput);  // Đọc toàn bộ dòng nhập vào
+
+                // Kiểm tra nếu người dùng không nhập gì
+                if (otpInput.empty()) {
+                    cout << "\033[1;31m[!] OTP code cannot be empty. Please try again...\033[0m" << endl;
+                    system("pause");
+                    cout << "\033[A\033[K\033[A\033[K\033[A\033[K\033[A\033[K";  // Di chuyển con trỏ lên 1 dòng trước đó
+                    continue;  // Tiếp tục vòng lặp và yêu cầu nhập lại OTP
+                }
+
+                // Chuyển chuỗi nhập vào thành số
+                stringstream ss(otpInput);
+                ss >> userInput;
+
+                // Kiểm tra nếu nhập không phải là số
+                if (ss.fail()) {
+                    cout << "\033[1;31m[!] Please enter a valid OTP code (numbers only).\033[0m" << endl;
+                    system("pause");
+                    cout << "\033[A\033[K\033[A\033[K\033[A\033[K\033[A\033[K";  // Di chuyển con trỏ lên 1 dòng trước đó
+                    continue;  // Tiếp tục vòng lặp và yêu cầu nhập lại OTP
+                }
+
+                // Kiểm tra mã OTP đã đúng chưa
+                if (userInput == otp) {
+                    // Kiểm tra nếu người gửi có đủ tiền để chuyển
+                    if (loggedInUser->withdraw(amount)) {
+                        recipient->deposit(amount);
+
+                        // In thông tin giao dịch thành công
+                        cout << "\033[1;35m";
+                        cout << "\n|=======================================================================================================================================|" << "\n";
+                        cout << fixed << setprecision(2) << "\033[1;37m" << "                                      Transfer to " << recipient->getUserName() << " successful! -" << amount << " VND\n";
+                        cout << "\033[1;35m";
+                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                        cout << "                                               >>[Receiver]:      " << "\033[1;37m" << recipient->getPhoneNumber() << "\n";
+                        cout << "\033[1;35m";
+                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                        cout << "                                               >>[Recipient Name]:      " << "\033[1;37m" << recipient->getUserName() << "\n";
+                        cout << "\033[1;35m";
+                        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|" << "\n";
+                        cout << fixed << setprecision(2) << "                                               >>[Amount]:       " << "\033[1;37m" << "+" << amount << " VND\n";
+                        cout << "\033[1;35m";
+                        cout << "|=======================================================================================================================================|" << "\n\n";
+                        cout << "\033[0m";
+
+                        // Tạo và ghi giao dịch gửi tiền
+                        Transaction txnSent;
+                        txnSent.dateTime = getCurrentDateTime();
+                        txnSent.type = "Transfer Sent";
+                        txnSent.amount = amount;
+                        txnSent.balanceAfter = loggedInUser->getBalance();
+                        txnSent.details = "To: " + recipient->getPhoneNumber() + " (" + shortenName(recipient->getUserName()) + ")";
+                        loggedInUser->addTransaction(txnSent);
+                        balanceFluctuation(*loggedInUser, txnSent);
+
+                        // Tạo và ghi giao dịch nhận tiền cho người nhận
+                        Transaction txnReceived;
+                        txnReceived.dateTime = getCurrentDateTime();
+                        txnReceived.type = "Transfer Received";
+                        txnReceived.amount = amount;
+                        txnReceived.balanceAfter = recipient->getBalance();
+                        txnReceived.details = "From: " + loggedInUser->getPhoneNumber() + " (" + shortenName(loggedInUser->getUserName()) + ")";
+                        recipient->addTransaction(txnReceived);
+                        balanceFluctuation(*recipient, txnReceived);
+
+                        // Lựa chọn in hóa đơn
+                        processPrintBillOption(txnSent);
+
+                        // Lưu tất cả người dùng vào file
+                        saveAllUsersToFile();
+                        return;
+                    }
+                }
+
+                // Nếu OTP không chính xác, thông báo lỗi
+                if (userInput != otp) {
+                    cout << "\033[1;31m[!] Incorrect OTP code, please try again...\033[0m" << endl;  // Thông báo lỗi khi OTP sai
+                    system("pause");
+                    cout << "\033[A\033[K\033[A\033[K\033[A\033[K\033[A\033[K"; // Di chuyển con trỏ lên 1 dòng trước đó
+                }
+
+            } while (userInput != otp);
+
     }
 }
+
 
 
 void ATM::transactionHistory() {
@@ -505,84 +612,83 @@ void ATM::transactionHistory() {
     }
 
     string line;
-    bool hasTransaction = false;
-    int pageSize = 10; // Chỉ hiển thị 10 giao dịch mỗi trang
-    int pageCount = 0; // Biến theo dõi trang hiện tại
-    vector<string> transactions; // Lưu các giao dịch vào vector
+    vector<string> userTransactions; // Lưu giao dịch của người dùng hiện tại
 
-    // Đọc toàn bộ dữ liệu vào vector để phân trang
+    // Đọc file và lọc giao dịch theo số điện thoại của người dùng hiện tại
     while (getline(inFile, line)) {
-        transactions.push_back(line);
+        istringstream iss(line);
+        string phoneNumber;
+        getline(iss, phoneNumber, '\t');
+        if (phoneNumber == loggedInUser->getPhoneNumber()) {
+            userTransactions.push_back(line); // Thêm giao dịch vào danh sách của người dùng
+        }
     }
 
-    int totalPages = (transactions.size() + pageSize - 1) / pageSize; // Tính tổng số trang
+    inFile.close();
+
+    if (userTransactions.empty()) {
+        system("cls");
+        Menu::displayHeader("Transaction History");
+        cout << "\033[1;37m\n";
+        cout << "+=======================================================================================================================================+\n";
+        cout << "| No transactions found for your account                                                                                                |\n";
+        cout << "+=======================================================================================================================================+\n";
+        cout << "\033[0m";
+        return;
+    }
+
+    int pageSize = 10; // Chỉ hiển thị 10 giao dịch mỗi trang
+    int pageCount = 0; // Biến theo dõi trang hiện tại
+    int totalPages = (userTransactions.size() + pageSize - 1) / pageSize; // Tính tổng số trang
 
     while (true) {
-
         system("cls");
         Menu::displayHeader("Transaction History");
 
-        int startIdx = pageCount * pageSize; // Tính chỉ số bắt đầu của trang hiện tại
-        int endIdx = min(startIdx + pageSize, (int)transactions.size()); // Chỉ số kết thúc của trang
+        int startIdx = pageCount * pageSize; // Chỉ số bắt đầu của trang hiện tại
+        int endIdx = min(startIdx + pageSize, (int)userTransactions.size()); // Chỉ số kết thúc của trang
 
         cout << "\033[1;37m\n";
         cout << "+=======================================================================================================================================+\n";
         cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
-        // Đổi màu chữ tiêu đề thành đỏ sáng, không đổi màu khung
         cout << "|";
-        cout << "\033[1;31m"; // Màu đỏ sáng
+        cout << "\033[1;31m";
         cout << " Date & Time\t\t\tType\t\t\tAmount\t\t\tBalance After\t\tDetails                         ";
-        cout << "\033[0m"; // Đặt lại màu sắc mặc định sau khi in xong tiêu đề
+        cout << "\033[0m";
         cout << "|\n";
-        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|";
+        cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
 
         int y = 10;
         for (int i = startIdx; i < endIdx; i++) {
-            istringstream iss(transactions[i]);
+            istringstream iss(userTransactions[i]);
             string phoneNumber, userName, dateTime, type, details;
             double amount, balanceAfter;
 
-            // Tách các trường bằng istringstream
             getline(iss, phoneNumber, '\t');
             getline(iss, userName, '\t');
             getline(iss, dateTime, '\t');
             getline(iss, type, '\t');
             iss >> amount >> balanceAfter;
-            iss.ignore(); // Bỏ qua tab hoặc khoảng trắng sau balanceAfter
-            getline(iss, details); // Lấy phần còn lại của dòng làm chi tiết
+            iss.ignore();
+            getline(iss, details);
 
-            // Kiểm tra nếu số điện thoại trùng với người dùng hiện tại
-            if (phoneNumber == loggedInUser->getPhoneNumber()) {
-                hasTransaction = true;
-                gotoxy(0, y);
-                cout << "|";
-                gotoxy(2, y); // X đặt một vị trí phù hợp để căn chỉnh
-                cout << dateTime;
-                gotoxy(32, y); // Thay đổi X để đặt vị trí cho 'Type'
-                cout << type;
-                gotoxy(56, y); // Thay đổi X để đặt vị trí cho 'Amount'
-                cout << fixed << setprecision(2) << amount;
-                gotoxy(80, y); // Thay đổi X để đặt vị trí cho 'Balance After'
-                cout << fixed << setprecision(2) << balanceAfter;
-                gotoxy(104, y); // Thay đổi X để đặt vị trí cho 'Details'
-                cout << details;
-                gotoxy(136, y);
-                cout << "|" << endl;
-                cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
-
-                y = y + 2; // Di chuyển xuống hàng tiếp theo
-            }
-        }
-
-        if (!hasTransaction) {
-            int y2 = 10;
-            gotoxy(0, y2);
+            gotoxy(0, y);
             cout << "|";
-            gotoxy(2, y2); // X đặt một vị trí phù hợp để căn chỉnh
-            cout << "No transactions found for your account";
-            gotoxy(136, y2);
+            gotoxy(2, y);
+            cout << dateTime;
+            gotoxy(32, y);
+            cout << type;
+            gotoxy(56, y);
+            cout << fixed << setprecision(2) << amount;
+            gotoxy(80, y);
+            cout << fixed << setprecision(2) << balanceAfter;
+            gotoxy(104, y);
+            cout << details;
+            gotoxy(136, y);
             cout << "|" << endl;
             cout << "|---------------------------------------------------------------------------------------------------------------------------------------|\n";
+
+            y = y + 2;
         }
 
         cout << "+=======================================================================================================================================+\n";
@@ -593,25 +699,19 @@ void ATM::transactionHistory() {
         cout << "Page " << pageCount + 1 << " of " << totalPages << endl;
         cout << "Use left and right arrow keys to navigate pages, or ESC to quit.\n";
 
-        // Đọc phím người dùng
-        char choice = _getch(); // Dùng _getch() để đọc phím mà không cần nhấn Enter
-        if (choice == 27) { // Phím ESC
-            break; // Thoát khỏi việc xem lịch sử giao dịch
+        char choice = _getch();
+        if (choice == 27) { // ESC
+            break;
         }
-        else if (choice == 75) { // Mũi tên trái
-            if (pageCount > 0) {
-                pageCount--; // Quay lại trang trước đó
-            }
+        else if (choice == 75 && pageCount > 0) { // Left arrow
+            pageCount--;
         }
-        else if (choice == 77) { // Mũi tên phải
-            if (pageCount < totalPages - 1) {
-                pageCount++; // Chuyển sang trang tiếp theo
-            }
+        else if (choice == 77 && pageCount < totalPages - 1) { // Right arrow
+            pageCount++;
         }
     }
-
-    inFile.close();
 }
+
 
 
 void ATM::checkBalance() {
@@ -779,23 +879,24 @@ bool ATM::validatePin(const string& pin) {
 
 bool ATM::validateAmount(double amount, const string& transactionType) {
     if (amount <= 0 || static_cast<int>(amount) % 5 != 0) { // amount được chuyển sang kiểu int bằng cách sử dụng static_cast<int>(amount)
-        cout << "\n\nThe amount must be positive and a multiple of 5!" << endl;
+        cout << "\nThe amount must be positive and a multiple of 5!" << endl;
         return false;
     }
     if (transactionType == "Deposit" || transactionType == "Withdraw") {
         if (amount < 50000.0) {
-            cout << "\n\nThe minimum amount for performing the function is 50000VND!" << endl;
+            cout << "\nThe minimum amount for performing the function is 50000VND!" << endl;
             return false;
         }
     }
     if (transactionType == "Transfer") {
         if (amount < 10000.0) {
-            cout << "\n\nThe minimum amount for performing the function is 10000VND!" << endl;
+            cout << "\nThe minimum amount for performing the function is 10000VND!" << endl;
             return false;
         }
     }
     return true;
 }
+
 
 int ATM::generateOTP() {
     srand(static_cast<unsigned int>(time(0))); // Khởi tạo số ngẫu nhiên gồm 6 chữ số
@@ -926,7 +1027,7 @@ bool ATM::getInputWithESC(string& input, bool hideInput = false) {
             ch = _getch(); // Đọc phím từ buffer
 
             // Kiểm tra trạng thái ESC và các phím khác
-            if (ch == 27) { // Mã ESC
+              if (ch == 27) { // Mã ESC
                 bool isOtherKeyPressed = false;
 
                 // Kiểm tra tất cả các phím trên bàn phím (bao gồm phím Modifier và phím thông thường)
@@ -984,8 +1085,176 @@ bool ATM::getInputWithESC(double& input) {
         input = stod(amountStr); // Chuyển chuỗi thành số
     }
     catch (...) {
-        cout << "\n[X] Invalid input!\n";
-        return false;
+        return true;
     }
     return true;
+}
+void ATM::printBill(const Transaction& txn) {
+    system("cls");
+
+    // Thiết lập màu sắc
+    const string borderColor = "\033[1;32m"; // Màu xanh lá cho khung và viền
+    const string textColor = "\033[1;37m";   // Màu trắng sáng cho chữ
+    const string labelColor = "\033[1;33m";  // Màu vàng cho nhãn
+    const string amountColor = "\033[1;35m"; // Màu tím sáng cho số tiền
+    const string resetColor = "\033[0m";     // Reset màu
+
+    // In tiêu đề hóa đơn
+    cout << borderColor;
+    cout << "+------------------------------------------------------------------+\n";
+    cout << "|                        TRANSACTION BILL                          |\n";
+    cout << "+------------------------------------------------------------------+\n";
+    cout << resetColor;
+
+    // In nội dung hóa đơn
+    cout << borderColor;
+    cout << "| " << labelColor << "Date & Time         " << resetColor << ": " << textColor << txn.dateTime;
+    gotoxy(67, 3);
+    cout << borderColor << "|\n";
+
+    cout << "| " << labelColor << "Transaction Type    " << resetColor << ": " << textColor << txn.type;
+    gotoxy(67, 4);
+    cout << borderColor << "|\n";
+
+    cout << "| " << labelColor << "Amount              " << resetColor << ": "
+        << amountColor << fixed << setprecision(2) << txn.amount << textColor << " VND";
+    gotoxy(67, 5);
+    cout << borderColor << "|\n";
+
+    cout << "| " << labelColor << "Balance After       " << resetColor << ": "
+        << amountColor << fixed << setprecision(2) << txn.balanceAfter << textColor << " VND";
+    gotoxy(67, 6);
+    cout << borderColor << "|\n";
+
+    // Nếu là giao dịch chuyển tiền, in chi tiết
+    if (txn.type == "Transfer Sent" || txn.type == "Transfer Received") {
+        cout << "| " << labelColor << "Details             " << resetColor << ": " << textColor << txn.details;
+        gotoxy(67, 7);
+        cout << borderColor << "|\n";
+    }
+
+    // In footer hóa đơn
+    cout << borderColor;
+    cout << "+------------------------------------------------------------------+\n";
+    cout << "|         Thank you for using W3O ATM Service! Stay Safe!          |\n";
+    cout << "+------------------------------------------------------------------+\n";
+    cout << resetColor;
+}
+
+
+
+
+
+void ATM::processPrintBillOption(const Transaction& txn) {
+    char choice;
+    while (true) {
+        cout << "Do you want to print a transaction bill? (Y/N): ";
+        cin >> choice;
+
+        if (choice == 'Y' || choice == 'y') {
+            printBill(txn);
+            return;
+        }
+        else if (choice == 'N' || choice == 'n') {
+            cout << "Transaction bill printing canceled.\n";
+                return;
+        }
+        else {
+            cout << "[X] Invalid input. Please enter 'Y' or 'N'.\n";
+        }
+    }
+}
+
+int ATM::validateOptionMenu() {
+    string input;
+    int choice;
+
+    while (true) {
+        // Hiển thị menu
+        Menu::displayHeader("<<WELCOME TO W3O BANK>>");
+        Menu::showMenu();
+
+        // Đọc chuỗi nhập từ người dùng
+        cin >> input;
+
+        // Kiểm tra xem chuỗi chỉ chứa các ký tự số
+        bool isValid = true;
+        for (char c : input) {
+            if (!isdigit(c)) {
+                isValid = false;
+                break;
+            }
+        }
+
+        if (isValid && !input.empty()) {
+            try {
+                choice = stoi(input); // Chuyển chuỗi thành số nguyên
+
+                // Kiểm tra tùy chọn có hợp lệ không
+                if (choice == 1 || choice == 2 || choice == 3) {
+                    return choice;
+                }
+                else {
+                    cout << "Invalid choice. Please select 1, 2, or 3." << endl;
+                }
+            }
+            catch (const out_of_range&) {
+                cout << "Error! The number is too large. Please try again." << endl;
+            }
+        }
+        else {
+            cout << "Error! The option must be number." << endl;
+        }
+
+        // Xóa bộ nhớ đệm theo cách thủ công
+        cout << "Press Enter to try again...";
+        cin.ignore(10000, '\n'); // Đọc và bỏ qua tối đa 10000 ký tự đến khi gặp '\n'
+        cin.get(); // Đợi người dùng nhấn Enter
+    }
+}
+int ATM::validateOptionMainMenu() {
+    string input;
+    int choice;
+
+    while (true) {
+        Menu::displayHeader("User Login Account");
+        Menu::showMenuLoginAfter();
+
+        // Đọc chuỗi nhập từ người dùng
+        cin >> input;
+
+        // Kiểm tra xem chuỗi chỉ chứa các ký tự số
+        bool isValid = true;
+        for (char c : input) {
+            if (!isdigit(c)) {
+                isValid = false;
+                break;
+            }
+        }
+
+        if (isValid && !input.empty()) {
+            try {
+                choice = stoi(input); // Chuyển chuỗi thành số nguyên
+
+                // Kiểm tra tùy chọn có hợp lệ không
+                if (choice == 1 || choice == 2 || choice == 3 || choice == 4 || choice == 5 || choice == 6) {
+                    return choice;
+                }
+                else {
+                    cout << "Invalid choice. Please select from 1 to 6." << endl;
+                }
+            }
+            catch (const out_of_range&) {
+                cout << "Error! The number is too large. Please try again." << endl;
+            }
+        }
+        else {
+            cout << "Error! The option must be number." << endl;
+        }
+
+        // Xóa bộ nhớ đệm theo cách thủ công
+        cout << "Press Enter to try again...";
+        cin.ignore(10000, '\n'); // Đọc và bỏ qua tối đa 10000 ký tự đến khi gặp '\n'
+        cin.get(); // Đợi người dùng nhấn Enter
+    }
 }

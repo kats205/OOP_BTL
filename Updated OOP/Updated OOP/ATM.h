@@ -11,6 +11,7 @@
 #include <ctime>
 #include <windows.h>
 #include <conio.h>
+#include <filesystem>
 using namespace std;
 
 
@@ -39,9 +40,11 @@ public:
     bool getInputWithESC(string& input, bool hideInput);
     bool getInputWithESC(double& input);
 
-    //hàm chức năng hõ trợ thời gian, lịch sử
+    //hàm chức năng hõ trợ thời gian, lịch sử, bill
     static string getCurrentDateTime();
     void balanceFluctuation(const UserAccount& user, const Transaction& txn);
+    void processPrintBillOption(const Transaction& txn);
+    void printBill(const Transaction& txn);
 
     //hàm hỗ trợ cho kiểm tra dữ liệu đầu vào chuẩn form
     bool isPhoneNumberRegistered(const string& phone);
@@ -51,6 +54,8 @@ public:
     bool validatePassword(const string& password);
     bool validatePin(const string& pin);
     bool validateAmount(double amount, const string& transactionType);
+    int validateOptionMenu();
+    int validateOptionMainMenu(); // 2 hàm hỗ trợ chặn đầu vào cho menu
 
     int generateOTP();
 
